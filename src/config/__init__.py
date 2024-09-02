@@ -1,3 +1,5 @@
-from .env_config import set_env
+from .config import CONFIG
 
-__all__ = ["set_env"]
+
+
+__all__ = ["CONFIG" ]

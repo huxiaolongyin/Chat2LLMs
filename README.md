@@ -17,24 +17,26 @@
 支持的Python版本：Python3.8+
 
 - 语音识别：whisper
-- 大模型：基于ollama的llama3
-- 大模型交互：langchain/TaskingAI
-- 知识数据库：MongoDB(拟定)
+- 大模型：基于ollama的llama3.1
+- 大模型交互：haystack
+- 向量数据库：qdrant
 - api服务：Fastapi
 - 知识图谱：待定(这个可能不是顺手就可以实现的，原理有点不同)
-- 后端系统：Django(拟定)
+<!-- - 后端系统：Django(拟定) -->
 - 管理数据：SQLite or Mysql
 - 前端：Vue(拟定)
 - 语音服务：edge-tts
 
 # 文件结构
 ```powershell
-chat2llm
+src
     ├─api # 提供api服务
+    ├─chat # 聊天
+    ├─config # 设置
     ├─core # 核心
     ├─embedding # 知识文件向量化
     ├─llms # 提供模型服务
-    ├─messages # 消息存储
+    ├─pipeline # 管道
     ├─prompts # 提示词
     ├─retriever # 检索
     ├─speech2text # 语音转文字

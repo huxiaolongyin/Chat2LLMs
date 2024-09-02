@@ -1,6 +1,6 @@
 [project]
 name = "chat2llms"
-version = "0.0.2"
+version = "0.0.3"
 description = "与大模型交互的RAG问答系统"
 readme = "README.md"
 maintainers = [{ name = "Jacob Zheng", email = "1453366421@qq.com" }]
@@ -21,3 +21,7 @@ dev = []
 [build-system]
 requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools]
+# packages = ["backend","backend.llms","backend.embedding"]

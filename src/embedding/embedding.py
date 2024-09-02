@@ -1,6 +1,5 @@
 import os
-from typing import List
-from config import set_env
+from typing import List, Dict
 from haystack import Pipeline, Document
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.writers import DocumentWriter
@@ -24,7 +23,6 @@ class Knowledge:
     @classmethod
     def write(cls, docs: List[str]):
         """将知识内容，写入知识库"""
-        set_env()
         model_path = os.getenv("MODEL_PATH")
         # 获取文档
         documents = [Document(content=doc) for doc in docs]
@@ -42,6 +40,6 @@ class Knowledge:
         self.document_store.delete_documents()
 
     @classmethod
-    def get(cls):
+    def get(cls, doc: Dict[str,str] = None):
         """从知识库获取文档"""
-        return cls.document_store.filter_documents()
+        return cls.document_store.filter_documents(doc)
