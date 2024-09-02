@@ -1,0 +1,17 @@
+.venv
+
+.env
+
+**_pycache__
+
+.vscode
+
+.pytest_cache
+
+build
+
+**egg-info
+
+temp
+
+chat2llm
