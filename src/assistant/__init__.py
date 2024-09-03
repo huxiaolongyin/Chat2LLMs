@@ -1,3 +1,3 @@
-from .chat import ChatWithOllama
+from .routes import router as assistant_router
 
-__all__ = ["ChatWithOllama"]
+__all__ = ["assistant_router"]

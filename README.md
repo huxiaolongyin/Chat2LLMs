@@ -1,4 +1,4 @@
-# Chat2LLM
+# Chat2LLMs
 本项目计划开发一个 基于LLM的知识库问答系统。
 
 能够实现
@@ -13,19 +13,17 @@
 - 硬件的智能服务
 
 # 开发
-技术栈方面
-支持的Python版本：Python3.8+
-
-- 语音识别：whisper
-- 大模型：基于ollama的llama3.1
-- 大模型交互：haystack
+技术栈
+- Python >= 3.8
+- 向量化：Bert-Chinese-base-v1
 - 向量数据库：qdrant
+- 数据库：SQLite
+- 缓冲区：Redis
+- 大模型：基于ollama的 llama3.1
+- 大模型交互：haystack
 - api服务：Fastapi
-- 知识图谱：待定(这个可能不是顺手就可以实现的，原理有点不同)
-<!-- - 后端系统：Django(拟定) -->
-- 管理数据：SQLite or Mysql
-- 前端：Vue(拟定)
-- 语音服务：edge-tts
+- 语音：whisper
+- 知识图谱：待定
 
 # 文件结构
 ```powershell
