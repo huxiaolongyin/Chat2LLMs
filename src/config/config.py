@@ -19,9 +19,10 @@ def load_str_env(name: str, required: bool = False) -> str:
 
     if default_env_values.get(name) is not None:
         return default_env_values.get(name)
-    
+
     if required:
         raise Exception(f"Env {name} is not set")
+
 
 def load_int_env(name: str, required: bool = False) -> int:
     """
@@ -44,11 +45,13 @@ class Config:
 
     def __init__(self):
         from __init__ import __VERSION__
-        
+
         self.VERSION = __VERSION__
         self.SERVICE_PORT = load_int_env("SERVICE_PORT", required=True)
+        self.DB_SQLITE_PATH = load_str_env("DB_SQLITE_PATH", required=True)
 
         # web
         self.WEB_ROUTE_PREFIX = "/api"
+
 
 CONFIG = Config()

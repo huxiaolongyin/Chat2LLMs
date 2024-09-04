@@ -13,5 +13,5 @@ build
 **egg-info
 # 临时文件
 temp
-# 向量数据库文件
-qdrant_storage
+# 向量数据库、数据文件
+data/

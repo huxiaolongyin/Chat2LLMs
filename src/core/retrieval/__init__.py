@@ -1,3 +1,3 @@
-from .embedding import Knowledge
+from .embedding import HTWDocument
 
-__all__ = ["Knowledge"]
+__all__ = ["HTWDocument"]

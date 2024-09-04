@@ -37,7 +37,6 @@ async def new_message(message: MessageBase, db: Session = Depends(get_db)):
     db_messages = get_messages(db=db, chat_id=message.chat_id, skip=0, limit=100)
 
     history_messages = []
-
     # 添加提示词
     history_messages.append(ChatMessage.from_system(content=prompt))
     for db_message in db_messages[-8:]:
@@ -46,8 +45,7 @@ async def new_message(message: MessageBase, db: Session = Depends(get_db)):
         elif db_message.role == "assistant":
             history_message = ChatMessage.from_assistant(db_message.content)
         history_messages.append(history_message)
-    history_messages.append(ChatMessage.from_user("问题：{{question}}，查询内容：{{content}}"))
-
+    history_messages.append(ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}"))
     ansewer = ollama.chat(message.content,top_k=5, history_messages=history_messages)[0].content
     message.content = ansewer
     message.role = "assistant"
