@@ -45,12 +45,29 @@ async def new_message(message: MessageBase, db: Session = Depends(get_db)):
         elif db_message.role == "assistant":
             history_message = ChatMessage.from_assistant(db_message.content)
         history_messages.append(history_message)
-    history_messages.append(ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}"))
-    ansewer = ollama.chat(message.content,top_k=5, history_messages=history_messages)[0].content
+    history_messages.append(
+        ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
+    )
+    ansewer = ollama.chat(message.content, top_k=5, history_messages=history_messages)[
+        0
+    ].content
     message.content = ansewer
     message.role = "assistant"
 
     create_message(db=db, message=message)
+    return BaseDataResponse(data={"answer": ansewer})
+
+
+@router.get(
+    "",
+    tags=["Message"],
+    operation_id="get_history_message",
+    summary="Get History Message",
+    response_model=BaseDataResponse,
+)
+async def message_list(
+    chat_id: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+):
     return BaseDataResponse(
-        data={"answer": ansewer}
+        data=get_messages(db=db, chat_id=chat_id, skip=skip, limit=limit)
     )
