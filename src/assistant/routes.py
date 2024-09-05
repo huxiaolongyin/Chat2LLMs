@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from database.sqlite.connection import get_db
 from sqlalchemy.orm import Session
 
-from models.assistant.assistant_schemas import AssistantCreate, AssistantList
+from models.assistant.assistant_schemas import AssistantBase, AssistantList
 from models.assistant.assistant_crud import *
 from .chat_routes import router as chat_router
 
@@ -13,13 +13,13 @@ router = APIRouter()
 
 
 @router.post(
-    "/create",
+    "",
     tags=["Assistant"],
     operation_id="create_assistant",
     summary="Create Assistants",
     response_model=BaseDataResponse,
 )
-async def new_assistant(assistant: AssistantCreate, db: Session = Depends(get_db)):
+async def new_assistant(assistant: AssistantBase, db: Session = Depends(get_db)):
     """创建助手"""
     db_assistant = create_assistant(db=db, assistant=assistant)
     if not db_assistant:
@@ -33,7 +33,7 @@ async def new_assistant(assistant: AssistantCreate, db: Session = Depends(get_db
 
 
 @router.get(
-    "/list",
+    "",
     tags=["Assistant"],
     operation_id="assistant_list",
     summary="Get Assistants",
@@ -49,15 +49,15 @@ async def assistants_list(
     return AssistantList(data=assistants)
 
 
-@router.post(
-    "/update",
+@router.put(
+    "",
     tags=["Assistant"],
     operation_id="update_assistant",
     summary="Update Assistants",
     response_model=BaseDataResponse,
 )
 async def up_assistant(
-    assistant: AssistantCreate,
+    assistant: AssistantBase,
     assistant_id: str,
     db: Session = Depends(get_db),
 ):
@@ -73,8 +73,8 @@ async def up_assistant(
     return BaseDataResponse(data=db_assistant)
 
 
-@router.post(
-    "/delete",
+@router.delete(
+    "",
     tags=["Assistant"],
     operation_id="delete_assistant",
     summary="Delete Assistants",
@@ -89,7 +89,6 @@ async def del_assistant(assistant_id: str, db: Session = Depends(get_db)):
             content=ErrorResponse(detail="Assistant not found").dict(),
         )
     return BaseDataResponse(data=db_assistant)
-
 
 
 router.include_router(chat_router, prefix="/chat")

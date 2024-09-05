@@ -1,9 +1,8 @@
 from sqlalchemy import Column, String, Text
-from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from database.sqlite.connection import Base
 from utils import generate_id
-
+from datetime import datetime
 
 class Assistant(Base):
     __tablename__ = "ai_assistants"
@@ -12,7 +11,7 @@ class Assistant(Base):
     name = Column(String, index=True)
     description = Column(Text)
     prompt = Column(Text)
-    create_time = Column(String, default=func.now())
-    update_time = Column(String, default=func.now(), onupdate=func.now())
+    create_time = Column(String, default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    update_time = Column(String, default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), onupdate=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     chats = relationship("Chat", back_populates="assistant")

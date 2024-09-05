@@ -8,10 +8,6 @@ class AssistantBase(BaseModel):
     prompt: str
 
 
-class AssistantCreate(AssistantBase):
-    pass
-
-
 class Assistant(AssistantBase):
     assistant_id: str
     create_time: str
@@ -19,6 +15,7 @@ class Assistant(AssistantBase):
 
     class Config:
         orm_mode = True
+
 
 class AssistantList(BaseModel):
     status: str = Field(
