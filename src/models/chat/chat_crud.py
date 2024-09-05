@@ -1,15 +1,49 @@
 from sqlalchemy.orm import Session
-from . import chat_model, chat_schemas
+from .chat_model import Chat
+from .chat_schemas import ChatBase
+from datetime import datetime
 
-def create_chat(db: Session, chat: chat_schemas.ChatCreate):
-    db_chat = chat_model.Chat(**chat.dict())
+
+def create_chat(db: Session, chat: ChatBase):
+    db_chat = Chat(**chat.dict())
     db.add(db_chat)
     db.commit()
     db.refresh(db_chat)
     return db_chat
 
-def get_chat(db: Session, chat_id: str):
-    return db.query(chat_model.Chat).filter(chat_model.Chat.chat_id == chat_id).first()
 
-def get_chats_for_assistant(db: Session, assistant_id: str, skip: int = 0, limit: int = 100):
-    return db.query(chat_model.Chat).filter(chat_model.Chat.assistant_id == assistant_id).offset(skip).limit(limit).all()
+def get_chat(db: Session, chat_id: str):
+    return db.query(Chat).filter(Chat.chat_id == chat_id).first()
+
+
+def get_chat_for_assistant(db: Session, assistant_id: str):
+    return db.query(Chat).filter(Chat.assistant_id == assistant_id).all()
+
+
+def update_chat(db: Session, chat_id: str, title: str):
+    db_chat = db.query(Chat).filter(Chat.chat_id == chat_id).first()
+    setattr(db_chat, "title", title)
+    setattr(db_chat, "update_time", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    db.commit()
+    db.refresh(db_chat)
+    return db.query(Chat).filter(Chat.chat_id == chat_id).first()
+
+
+def delete_chat(db: Session, chat_id: str):
+    db_chat = db.query(Chat).filter(Chat.chat_id == chat_id).first()
+    if db_chat:
+        db.delete(db_chat)
+        db.commit()
+    return db_chat
+
+
+def get_chats_for_assistant(
+    db: Session, assistant_id: str, skip: int = 0, limit: int = 100
+):
+    return (
+        db.query(Chat)
+        .filter(Chat.assistant_id == assistant_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )

@@ -7,8 +7,6 @@ class ChatBase(BaseModel):
     assistant_id: str
     
 
-class ChatCreate(ChatBase):
-    pass
 
 class Chat(ChatBase):
     chat_id: str
