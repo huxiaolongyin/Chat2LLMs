@@ -5,8 +5,12 @@ from database.sqlite.connection import get_db
 from sqlalchemy.orm import Session
 
 from models.assistant.assistant_schemas import AssistantBase, AssistantList
-from models.assistant.assistant_crud import *
-from .chat_routes import router as chat_router
+from models.assistant.assistant_crud import (
+    create_assistant,
+    get_assistants,
+    update_assistant,
+    delete_assistant,
+)
 
 
 router = APIRouter()
@@ -89,6 +93,3 @@ async def del_assistant(assistant_id: str, db: Session = Depends(get_db)):
             content=ErrorResponse(detail="Assistant not found").dict(),
         )
     return BaseDataResponse(data=db_assistant)
-
-
-router.include_router(chat_router, prefix="/chat")

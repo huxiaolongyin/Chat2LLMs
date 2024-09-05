@@ -3,15 +3,14 @@ from fastapi.responses import JSONResponse
 from database.sqlite.connection import get_db
 from models.base import BaseDataResponse, ErrorResponse
 from models.chat.chat_schemas import ChatCreate
-from models.chat.chat_crud import *
-from models.assistant.assistant_crud import *
-from .message_routes import router as message_router
+from models.chat.chat_crud import create_chat, Session
+from models.assistant.assistant_crud import get_assistant
 
 router = APIRouter()
 
 
 @router.post(
-    "/create",
+    "",
     tags=["Chat"],
     operation_id="create_chat",
     summary="Create chat",
@@ -26,6 +25,3 @@ async def new_chat(chat: ChatCreate, db: Session = Depends(get_db)):
         )
     db_chat = create_chat(db=db, chat=chat)
     return BaseDataResponse(data=db_chat)
-
-
-router.include_router(message_router, prefix="/message")
