@@ -15,12 +15,12 @@ class HTWDocument:
 
     def __init__(
         self,
-        document_name: str = "Document",
+        store: str = "Document",
         model_path: str = os.getenv("MODEL_PATH"),
         db_host: str = "127.0.0.1",
         port: int = 6333,
     ):
-        self.document_name = document_name
+        self.store = store
         self.model_path = model_path
         self.db_host = db_host
         self.port = port
@@ -31,7 +31,7 @@ class HTWDocument:
         embedding_dim = BertConfig.from_pretrained(self.model_path).hidden_size
         document_store = QdrantDocumentStore(
             url=self.db_host,
-            index=self.document_name,
+            index=self.store,
             embedding_dim=embedding_dim,
             # recreate_index=True,
             hnsw_config={"m": 16, "ef_construct": 64},  # Optional
@@ -65,7 +65,12 @@ class HTWDocument:
 
     def get_docs(self, filter: Dict[str, str] = None):
         """获取知识库内容，若没有，则返回所有知识内容"""
-        return self.document_store.filter_documents(filter)
+        docs = self.document_store.filter_documents(filter)
+        res = []
+        for doc in docs:
+            res.append({"id": doc.id, "content": doc.content})
+        
+        return res
 
     def del_docs(self, ids: List[str] = None):
         """删除知识内容"""
