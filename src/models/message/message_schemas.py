@@ -2,13 +2,14 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Literal
 
+
 class MessageBase(BaseModel):
     chat_id: str
-    role: Literal['user', 'assistant', 'system']
+    role: Literal["user", "assistant", "system"]
     content: str
+    store: str = 'Document'
+    context_length: int= 8
 
-class MessageCreate(MessageBase):
-    pass
 
 class Message(MessageBase):
     message_id: str

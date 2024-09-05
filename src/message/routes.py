@@ -12,7 +12,6 @@ from models.chat.chat_crud import get_chat
 from haystack.dataclasses import ChatMessage
 
 router = APIRouter()
-ollama = ChatWithOllama()
 
 
 @router.post(
@@ -22,7 +21,10 @@ ollama = ChatWithOllama()
     summary="Create Message",
     response_model=BaseDataResponse,
 )
-async def new_message(message: MessageBase, db: Session = Depends(get_db)):
+async def new_message(
+    message: MessageBase,
+    db: Session = Depends(get_db),
+):
     chat = get_chat(db, chat_id=message.chat_id)
     if not chat:
         return JSONResponse(
@@ -37,9 +39,10 @@ async def new_message(message: MessageBase, db: Session = Depends(get_db)):
     db_messages = get_messages(db=db, chat_id=message.chat_id, skip=0, limit=100)
 
     history_messages = []
+
     # 添加提示词
     history_messages.append(ChatMessage.from_system(content=prompt))
-    for db_message in db_messages[-8:]:
+    for db_message in db_messages[-message.context_length :]:
         if db_message.role == "user":
             history_message = ChatMessage.from_user(db_message.content)
         elif db_message.role == "assistant":
@@ -48,9 +51,12 @@ async def new_message(message: MessageBase, db: Session = Depends(get_db)):
     history_messages.append(
         ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
     )
-    ansewer = ollama.chat(message.content, top_k=5, history_messages=history_messages)[
-        0
-    ].content
+    ollama = ChatWithOllama(store=message.store)
+    ansewer = ollama.chat(
+        question=message.content,
+        top_k=5,
+        history_messages=history_messages,
+    )[0].content
     message.content = ansewer
     message.role = "assistant"
 

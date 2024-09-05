@@ -23,20 +23,21 @@ class DocumentProcessor:
 
 
 class ChatWithOllama:
-    def __init__(self, max_history_length: int = 8, is_streaming: bool = True):
+    def __init__(
+        self,
+        is_streaming: bool = True,
+        store: str = "Document",
+    ):
         model_path = os.getenv("MODEL_PATH")
-        self.MAX_HISTORY_LENGTH = max_history_length
         self.is_streaming = is_streaming
+        self.document_store = HTWDocument(store).document_store
         self.query_pipeline = self._get_pipeline(model_path)
 
     def _get_pipeline(self, model_path):
         """建立一个pipeline"""
-        document_store = HTWDocument().document_store
+        retriever = QdrantEmbeddingRetriever(self.document_store)
         # 建立模型
         llm = Ollama(is_streaming=self.is_streaming)
-        retriever = QdrantEmbeddingRetriever(
-            document_store=document_store,
-        )
         text_embedder = SentenceTransformersTextEmbedder(model=model_path)
         prompt_builder = ChatPromptBuilder(variables=["question", "content"])
 
@@ -57,7 +58,10 @@ class ChatWithOllama:
     def chat(self, question: str, top_k: int, history_messages: ChatMessage):
         result = self.query_pipeline.run(
             data={
-                "retriever": {"top_k": top_k, "score_threshold": 0.7},
+                "retriever": {
+                    "top_k": top_k,
+                    "score_threshold": 0.7,
+                },
                 "text_embedder": {"text": question},
                 "messages": {"question": question, "template": history_messages},
             }
@@ -66,22 +70,3 @@ class ChatWithOllama:
         answer = result["llm"]["replies"]
 
         return answer
-
-    def knowledge_list(self):
-        document_store = HTWDocument().document_store
-        doc_list = []
-        for doc in document_store.filter_documents():
-            doc_list.append((doc.id, doc.content))
-        return doc_list
-
-    def add_knowledge(self, content):
-        document_store = HTWDocument().document_store
-        document_store.write_documents([content])
-
-    def _trim_history(self, messages):
-        if len(messages) > self.MAX_HISTORY_LENGTH:
-            first_message = messages[0]
-            latest_messages = messages[-(self.MAX_HISTORY_LENGTH - 1) :]
-            return [first_message] + latest_messages
-        else:
-            return messages

@@ -5,7 +5,8 @@ from datetime import datetime
 class ChatBase(BaseModel):
     title: str
     assistant_id: str
-    
+    store: str = "Document"
+    context_length: int=8
 
 
 class Chat(ChatBase):

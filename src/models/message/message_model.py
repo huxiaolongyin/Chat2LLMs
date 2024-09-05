@@ -12,5 +12,7 @@ class Message(Base):
     role = Column(String(50), nullable=False)
     content = Column(Text, nullable=False)
     create_time = Column(String, default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    store = Column(String(50), nullable=False)
+    context_length = Column(Integer)
 
     chat = relationship("Chat", back_populates="message")
