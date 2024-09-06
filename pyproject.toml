@@ -6,7 +6,7 @@ readme = "README.md"
 maintainers = [{ name = "Jacob Zheng", email = "1453366421@qq.com" }]
 requires-python = ">=3.8"
 dependencies = [
-    "haystack-ai[faiss]==2.4.0",
+    "haystack-ai==2.4.0",
     "fastapi==0.112.2",
     "uvicorn==0.30.6",
     "python-dotenv==1.0.0",

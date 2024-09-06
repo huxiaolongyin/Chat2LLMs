@@ -9,8 +9,8 @@ def Ollama(
     token_length: int = 512,
 ):
 
-    def streaming_callback(chunk):
-        yield chunk.content
+    # def streaming_callback(chunk):
+    #     yield chunk.content
 
     if is_streaming:
         llm = OllamaChatGenerator(
@@ -20,7 +20,7 @@ def Ollama(
                 "num_predict": token_length,
                 "temperature": 0.4,
             },
-            streaming_callback=lambda chunk: print(chunk.content, flush=True, end=""),
+            streaming_callback=print_streaming_chunk
             # streaming_callback=lambda  chunk: streaming_callback(chunk),
             
         )

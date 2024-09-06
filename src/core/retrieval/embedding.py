@@ -17,7 +17,7 @@ class HTWDocument:
         self,
         store: str = "Document",
         model_path: str = os.getenv("MODEL_PATH"),
-        db_host: str = "127.0.0.1",
+        db_host: str = "localhost",
         port: int = 6333,
     ):
         self.store = store
@@ -30,7 +30,8 @@ class HTWDocument:
     def __get_store(self):
         embedding_dim = BertConfig.from_pretrained(self.model_path).hidden_size
         document_store = QdrantDocumentStore(
-            url=self.db_host,
+            host=self.db_host,
+            port=self.port,
             index=self.store,
             embedding_dim=embedding_dim,
             # recreate_index=True,

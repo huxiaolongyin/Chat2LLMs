@@ -15,3 +15,5 @@ build
 temp
 # 向量数据库、数据文件
 data/
+
+BigModels

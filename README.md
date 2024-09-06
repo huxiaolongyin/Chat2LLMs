@@ -13,54 +13,62 @@
 - 硬件的智能服务
 
 # 开发
-技术栈
+**技术栈**
 - Python >= 3.8
-- 向量化：Bert-Chinese-base-v1
 - 向量数据库：qdrant
-- 数据库：SQLite
+- 数据库：SQLite/MySQL
 - 缓冲区：Redis
-- 大模型：基于ollama的 llama3.1
 - 大模型交互：haystack
+- 大模型监控：phoenix
 - api服务：Fastapi
-- 语音：whisper
 - 知识图谱：待定
 
+**模型方面**
+- 向量化模型：360Zhinao-search
+- 文本大模型：基于 ollama的 llama3.1
+- 语音模型：whisper
+  
 # 文件结构
 ```powershell
 src
-    ├─api # 提供api服务
+    ├─assistant # 助手
+    ├─auth # 用户认证
     ├─chat # 聊天
     ├─config # 设置
     ├─core # 核心
-    ├─embedding # 知识文件向量化
-    ├─llms # 提供模型服务
-    ├─pipeline # 管道
-    ├─prompts # 提示词
-    ├─retriever # 检索
-    ├─speech2text # 语音转文字
-    ├─text2speech # 文字转语音
-    ├─textcls # 文字分类
-    ├─vectorstore # 向量库存储
+    ├─database # 数据库管理
+    ├─knowledge # 知识库管理
+    ├─manage # 管理服务
+    ├─message # 消息
+    ├─models # 数据库、表对象模型
+
 ```
 
 # 开发计划
-## 实现语音交互的知识库问答服务
+## V0.1.0
+实现最小化可行产品(MVP)
+- [x] 支持文本问答
+- [x] 支持 RAG 知识库管理，进行上传、删除、查询
+- [x] 支持上下文
+- [x] 支持助手管理
+- [x] 支持会话管理
+- [ ] 实时流处理
 
-- [ ] 语音识别
-- [ ] 与大模型交互
-- [ ] 上下文处理
-- [ ] 会话处理
-- [ ] RAG知识库
-- [ ] 实时信息的爬取
+## V0.2.0
+- [ ] 支持Docker Compose 部署
+- [ ] 支持文本模型选择、嵌入模型选择
+- [ ] 支持语音交互
+- [ ] 支持 doc 文件上传管理
+- [ ] 支持用户认证
+- [ ] 支持实体识别
 
-| tips：基于以上这些就可以进行硬件小助手的开发
-
-## 管理系统
-- [ ] 问答交互页面
-- [ ] 知识文件导入管理
+## V0.3.0
+- [ ] 支持知识图谱
+- [ ] 支持网上数据的爬取
 
 
 # 参考
 - Fastgpt：https://github.com/labring/FastGPT
 - ollama：https://github.com/ollama/ollama
 - langchain：https://github.com/langchain-ai/langchain
+- taskingAI：https://github.com/TaskingAI/TaskingAI

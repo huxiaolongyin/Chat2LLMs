@@ -22,41 +22,61 @@ class DocumentProcessor:
         return {"processed_documents": processed_documents}
 
 
-class ChatWithOllama:
+class ChatBot:
+    # 使用的 Embedding 模型
+
     def __init__(
         self,
         is_streaming: bool = True,
         store: str = "Document",
     ):
-        model_path = os.getenv("MODEL_PATH")
+        """
+        :param is_streaming: 是否使用流式输出
+        :param store: 知识库名称
+        """
+        self.embedding_model_path = os.getenv("MODEL_PATH")
         self.is_streaming = is_streaming
         self.document_store = HTWDocument(store).document_store
-        self.query_pipeline = self._get_pipeline(model_path)
+        self.pipeline = self._get_pipeline(self.embedding_model_path)
 
-    def _get_pipeline(self, model_path):
-        """建立一个pipeline"""
+    def _get_pipeline(self, embedding_model_path: str) -> Pipeline:
+        """
+        构建一个pipeline，流程如下
+        1. 360 Bert embedding
+        2. Qdrant retriever
+        3. 文本处理 DocumentProcessor
+        4. Chat Prompt Builder
+        5. Ollama llama3.1
+        """
+        text_embedder = SentenceTransformersTextEmbedder(model=embedding_model_path)
         retriever = QdrantEmbeddingRetriever(self.document_store)
-        # 建立模型
         llm = Ollama(is_streaming=self.is_streaming)
-        text_embedder = SentenceTransformersTextEmbedder(model=model_path)
         prompt_builder = ChatPromptBuilder(variables=["question", "content"])
 
-        query_pipeline = Pipeline()
-        query_pipeline.add_component("text_embedder", text_embedder)
-        query_pipeline.add_component("retriever", retriever)
-        query_pipeline.add_component("processed_documents", DocumentProcessor())
-        query_pipeline.add_component("messages", prompt_builder)
-        query_pipeline.add_component("llm", llm)
+        pipeline = Pipeline()
+        pipeline.add_component("text_embedder", text_embedder)
+        pipeline.add_component("retriever", retriever)
+        pipeline.add_component("processed_documents", DocumentProcessor())
+        pipeline.add_component("messages", prompt_builder)
+        pipeline.add_component("llm", llm)
 
-        query_pipeline.connect("text_embedder.embedding", "retriever")
-        query_pipeline.connect("retriever.documents", "processed_documents")
-        query_pipeline.connect("processed_documents", "messages.content")
-        query_pipeline.connect("messages", "llm.messages")
+        pipeline.connect("text_embedder.embedding", "retriever")
+        pipeline.connect("retriever.documents", "processed_documents")
+        pipeline.connect("processed_documents", "messages.content")
+        pipeline.connect("messages", "llm.messages")
 
-        return query_pipeline
+        return pipeline
 
-    def chat(self, question: str, top_k: int, history_messages: ChatMessage):
-        result = self.query_pipeline.run(
+    def query(
+        self, question: str, top_k: int = 5, history_messages: ChatMessage = None
+    ):
+        """输出查询结果"""
+        # if history_messages is None:
+        history_messages = [
+            ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
+        ]
+
+        result = self.pipeline.run(
             data={
                 "retriever": {
                     "top_k": top_k,
@@ -66,7 +86,10 @@ class ChatWithOllama:
                 "messages": {"question": question, "template": history_messages},
             }
         )
-        # 历史消息存储
-        answer = result["llm"]["replies"]
+        print(result)
+        return result["llm"]
 
-        return answer
+
+if __name__ == "__main__":
+    bot = ChatBot(is_streaming=True)
+    print(bot.query("你能做些什么"))

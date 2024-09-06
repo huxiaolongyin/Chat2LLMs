@@ -4,11 +4,11 @@ from typing import Literal
 
 
 class MessageBase(BaseModel):
-    chat_id: str
+    chat_id: str = "AVG7zkTGtG1nv7cw"
     role: Literal["user", "assistant", "system"]
     content: str
-    store: str = 'Document'
-    context_length: int= 8
+    store: str = "Document"
+    context_length: int = 8
 
 
 class Message(MessageBase):

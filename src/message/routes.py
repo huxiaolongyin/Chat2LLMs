@@ -31,8 +31,6 @@ async def new_message(
             status_code=400,
             content=ErrorResponse(detail="Chat not found").dict(),
         )
-    # 写入数据
-    create_message(db=db, message=message)
 
     assistant_id = get_chat(db=db, chat_id=message.chat_id).assistant_id
     prompt = get_assistant(db=db, assistant_id=assistant_id).prompt
@@ -40,27 +38,28 @@ async def new_message(
 
     history_messages = []
 
-    # 添加提示词
-    history_messages.append(ChatMessage.from_system(content=prompt))
-    for db_message in db_messages[-message.context_length :]:
+    for db_message in db_messages[message.context_length :: -1]:
         if db_message.role == "user":
             history_message = ChatMessage.from_user(db_message.content)
         elif db_message.role == "assistant":
             history_message = ChatMessage.from_assistant(db_message.content)
         history_messages.append(history_message)
+    # 添加提示词
+    history_messages.append(ChatMessage.from_system(content=prompt))
     history_messages.append(
         ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
     )
     ollama = ChatWithOllama(store=message.store)
     ansewer = ollama.chat(
-        question=message.content,
-        top_k=5,
-        history_messages=history_messages,
+        question=message.content, top_k=5, history_messages=history_messages
     )[0].content
+    # 写入问题
+    create_message(db=db, message=message)
+    # 写入回答
     message.content = ansewer
     message.role = "assistant"
-
     create_message(db=db, message=message)
+
     return BaseDataResponse(data={"answer": ansewer})
 
 
