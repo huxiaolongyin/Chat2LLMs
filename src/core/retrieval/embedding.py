@@ -76,3 +76,7 @@ class HTWDocument:
     def del_docs(self, ids: List[str] = None):
         """删除知识内容"""
         return self.document_store.delete_documents(ids)
+    
+    def del_store(self, store: str = None):
+        """删除知识库"""
+        pass

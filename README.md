@@ -52,7 +52,7 @@ src
 - [x] 支持上下文
 - [x] 支持助手管理
 - [x] 支持会话管理
-- [ ] 实时流处理
+- [x] 实时流处理
 
 ## V0.2.0
 - [ ] 支持Docker Compose 部署
@@ -66,6 +66,11 @@ src
 - [ ] 支持知识图谱
 - [ ] 支持网上数据的爬取
 
+
+## todo
+- [ ] 日志
+- [ ] 函数调用
+  
 
 # 参考
 - Fastgpt：https://github.com/labring/FastGPT

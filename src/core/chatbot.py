@@ -11,6 +11,7 @@ from haystack.components.builders import ChatPromptBuilder
 from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
 from haystack_integrations.components.generators.ollama import OllamaChatGenerator
 
+# 检测运行情况
 from openinference.instrumentation.haystack import HaystackInstrumentor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
     OTLPSpanExporter,

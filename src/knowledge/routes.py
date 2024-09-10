@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Path
 from models.base import BaseDataResponse, ErrorResponse
 from core.retrieval import HTWDocument
 from models.knowledge.knowledge_schemas import KnowledgeBase
 from fastapi.responses import JSONResponse
 from typing import List, Union
-
 
 router = APIRouter()
 
@@ -13,7 +12,7 @@ router = APIRouter()
     "/store",
     tags=["Knowledge"],
     operation_id="knowledge_catalogue",
-    summary="Get Knowledge Catalogue",
+    summary="知识库目录",
     response_model=BaseDataResponse,
 )
 async def knowledge_catalogue():
@@ -24,10 +23,10 @@ async def knowledge_catalogue():
     "/{store}",
     tags=["Knowledge"],
     operation_id="knowledge_content",
-    summary="Get Knowledge Content",
+    summary="知识库内容",
     response_model=BaseDataResponse,
 )
-async def knowledges(store: str):
+async def knowledges(store: str = Path(..., description="知识库名称")):
     if store not in HTWDocument().store_list():
         return JSONResponse(
             status_code=400,
@@ -40,7 +39,7 @@ async def knowledges(store: str):
     "",
     tags=["Knowledge"],
     operation_id="create_knowledge",
-    summary="Create Knowledge",
+    summary="创建知识(若没有知识库，则新建)",
     response_model=BaseDataResponse,
 )
 async def new_knowledge(documents: KnowledgeBase):
@@ -56,10 +55,22 @@ async def new_knowledge(documents: KnowledgeBase):
     "",
     tags=["Knowledge"],
     operation_id="delete_knowledge",
-    summary="Delete Knowledge",
+    summary="删除知识",
     response_model=BaseDataResponse,
 )
 async def del_knowledge(store: str, document_id: Union[list, str]):
     if isinstance(document_id, str):
         document_id = [document_id]
     return BaseDataResponse(data=HTWDocument(store).del_docs(document_id))
+
+
+@router.delete(
+    "/{store}",
+    tags=["Knowledge"],
+    operation_id="delete_knowledge_store",
+    summary="删除知识库",
+    response_model=BaseDataResponse,
+)
+async def del_knowledge_store(store: str):
+    """todo"""
+    pass

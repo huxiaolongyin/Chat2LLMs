@@ -9,7 +9,7 @@ router = APIRouter()
     "/status",
     tags=["Manage"],
     operation_id="status",
-    summary="Status",
+    summary="接口状态、版本",
     response_model=BaseDataResponse,
 )
 async def api_health_check():
