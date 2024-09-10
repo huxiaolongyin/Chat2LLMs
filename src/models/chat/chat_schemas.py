@@ -1,12 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Optional, List
 
 
 class ChatBase(BaseModel):
     title: str
     assistant_id: str
-    store: str = "Document"
-    context_length: int=8
 
 
 class Chat(ChatBase):
@@ -15,4 +14,16 @@ class Chat(ChatBase):
     update_time: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+class ChatResponse(BaseModel):
+    status: str = Field(
+        "success", pattern="^success$", description="The status of the response."
+    )
+    data: Chat
+
+class ChatListResponse(BaseModel):
+    status: str = Field(
+        "success", pattern="^success$", description="The status of the response."
+    )
+    data: List[Chat]

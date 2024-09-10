@@ -1,6 +1,6 @@
 from haystack_integrations.components.generators.ollama import OllamaChatGenerator
 from haystack.components.generators.utils import print_streaming_chunk
-
+from core.chatbot import ChatBot
 
 def Ollama(
     model: str = "llama3.1",
@@ -20,7 +20,7 @@ def Ollama(
                 "num_predict": token_length,
                 "temperature": 0.4,
             },
-            streaming_callback=print_streaming_chunk
+            streaming_callback=ChatBot.write_streaming_chunk
             # streaming_callback=lambda  chunk: streaming_callback(chunk),
             
         )

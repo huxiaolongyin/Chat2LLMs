@@ -39,7 +39,7 @@ class HTWDocument:
         )
         return document_store
 
-    def store_list(self):
+    def store_list(self) -> List[str]:
         """获取所有知识库的名称"""
         client = QdrantClient(host=self.db_host, port=self.port)
         indexes = client.get_collections().collections
@@ -70,7 +70,7 @@ class HTWDocument:
         res = []
         for doc in docs:
             res.append({"id": doc.id, "content": doc.content})
-        
+
         return res
 
     def del_docs(self, ids: List[str] = None):

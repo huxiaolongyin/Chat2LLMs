@@ -1,15 +1,16 @@
+import datetime
 import os
-from core.llms import Ollama
+import asyncio
 from core.retrieval import HTWDocument
 from haystack import Pipeline
-from haystack.dataclasses import ChatMessage
+from haystack.dataclasses import ChatMessage, StreamingChunk
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.builders import ChatPromptBuilder
 from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
-
 from haystack import component
 from typing import List
 from haystack.dataclasses import Document
+from haystack_integrations.components.generators.ollama import OllamaChatGenerator
 
 
 @component
@@ -24,6 +25,7 @@ class DocumentProcessor:
 
 class ChatBot:
     # 使用的 Embedding 模型
+    embedding_model_path = os.getenv("MODEL_PATH")
 
     def __init__(
         self,
@@ -34,9 +36,20 @@ class ChatBot:
         :param is_streaming: 是否使用流式输出
         :param store: 知识库名称
         """
-        self.embedding_model_path = os.getenv("MODEL_PATH")
+        self.queue = asyncio.Queue()
+        self.running = True
         self.is_streaming = is_streaming
         self.document_store = HTWDocument(store).document_store
+        self.llm = OllamaChatGenerator(
+            model="llama3.1",
+            url="http://192.168.30.66:11434/api/chat",
+            generation_kwargs={
+                "num_predict": 512,
+                "temperature": 0.4,
+            },
+            streaming_callback=self.write_streaming_chunk,
+        )
+
         self.pipeline = self._get_pipeline(self.embedding_model_path)
 
     def _get_pipeline(self, embedding_model_path: str) -> Pipeline:
@@ -50,7 +63,7 @@ class ChatBot:
         """
         text_embedder = SentenceTransformersTextEmbedder(model=embedding_model_path)
         retriever = QdrantEmbeddingRetriever(self.document_store)
-        llm = Ollama(is_streaming=self.is_streaming)
+        llm = self.llm
         prompt_builder = ChatPromptBuilder(variables=["question", "content"])
 
         pipeline = Pipeline()
@@ -69,14 +82,13 @@ class ChatBot:
 
     def query(
         self, question: str, top_k: int = 5, history_messages: ChatMessage = None
-    ):
+    ) -> str:
         """输出查询结果"""
-        # if history_messages is None:
-        history_messages = [
-            ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
-        ]
+        if history_messages is None:
+            history_messages = [ChatMessage.from_user(question)]
 
-        result = self.pipeline.run(
+        # 创建一个任务来执行pipeline
+        response = self.pipeline.run(
             data={
                 "retriever": {
                     "top_k": top_k,
@@ -85,11 +97,26 @@ class ChatBot:
                 "text_embedder": {"text": question},
                 "messages": {"question": question, "template": history_messages},
             }
-        )
-        print(result)
-        return result["llm"]
+        )["llm"]
 
+        # 标记流的结束
+        self.queue.put_nowait("None")
+        if "replies" in response:
+            return response["replies"]
+        else:
+            raise Exception("No replies found in response")
 
-if __name__ == "__main__":
-    bot = ChatBot(is_streaming=True)
-    print(bot.query("你能做些什么"))
+    def write_streaming_chunk(self, chunk: StreamingChunk):
+        """写入流式输出的内容"""
+        self.queue.put_nowait(chunk.content)
+
+    async def get_stream(self):
+        while self.running:
+            try:
+                chunk = await asyncio.wait_for(self.queue.get(), timeout=0.1)
+                if chunk == "None":
+                    self.running = False
+                else:
+                    yield f"data: {chunk}\n\n"
+            except asyncio.TimeoutError:
+                continue

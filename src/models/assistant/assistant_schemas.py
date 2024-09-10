@@ -1,5 +1,6 @@
+from typing_extensions import Literal
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Any, Optional, List
 
 
 class AssistantBase(BaseModel):
@@ -14,10 +15,16 @@ class Assistant(AssistantBase):
     update_time: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+    
 
+class AssistantResponse(BaseModel):
+    status: str = Field(
+        "success", pattern="^success$", description="The status of the response."
+    )
+    data: Assistant
 
-class AssistantList(BaseModel):
+class AssistantListResponse(BaseModel):
     status: str = Field(
         "success", pattern="^success$", description="The status of the response."
     )

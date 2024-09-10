@@ -25,6 +25,7 @@ def get_assistant(db: Session, assistant_id: str):
 
 
 def get_assistants(db: Session, skip: int = 0, limit: int = 100):
+    print(db.query(Assistant).offset(skip).limit(limit).all())
     return db.query(Assistant).offset(skip).limit(limit).all()
 
 

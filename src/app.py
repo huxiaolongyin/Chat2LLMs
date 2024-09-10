@@ -1,10 +1,10 @@
 import streamlit as st
 from haystack import Pipeline
 from haystack.dataclasses import ChatMessage
-from core.chat import ChatWithOllama 
+from core import ChatBot 
 
 # Constants to store key names in the config dictionary
-TITLE_NAME = 'title_name'
+TITLE_NAME = 'HTW ChatBot'
 UI_RENDERED_MESSAGES = 'ui_rendered_messages'
 CHAT_HISTORY = 'chat_history'
 CONVERSATIONAL_PIPELINE = 'conversational_pipeline'
@@ -30,10 +30,10 @@ def load_config():
     UI呈现的消息、聊天历史记录和会话管道实例。  
     """
     return {
-        TITLE_NAME: '汉特云知识问答机器人',
+        TITLE_NAME: 'HTW ChatBot',
         UI_RENDERED_MESSAGES: [],
         CHAT_HISTORY: [],
-        CONVERSATIONAL_PIPELINE: ChatWithOllama()
+        CONVERSATIONAL_PIPELINE: ChatBot()
     }
 
 
@@ -71,7 +71,7 @@ def manage_chat():
         with st.chat_message('assistant'):
             with st.spinner('Generating response . . .'):
                 response = st.session_state[CONVERSATIONAL_PIPELINE].query(prompt)
-        st.session_state[UI_RENDERED_MESSAGES].append({'role': 'assistant', 'content': response})
+        st.session_state[UI_RENDERED_MESSAGES].append({'role': 'assistant', 'content': response[0].content})
 
 
 def render_chat_history():
@@ -81,6 +81,7 @@ def render_chat_history():
     for message in st.session_state[UI_RENDERED_MESSAGES]:
         with st.chat_message(message['role']):
             st.markdown(message['content'])
+            print(message)
 
 
 if __name__ == '__main__':

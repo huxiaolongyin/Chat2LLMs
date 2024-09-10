@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 def create_chat(db: Session, chat: ChatBase):
-    db_chat = Chat(**chat.dict())
+    db_chat = Chat(**chat.model_dump())
     db.add(db_chat)
     db.commit()
     db.refresh(db_chat)

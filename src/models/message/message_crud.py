@@ -5,7 +5,7 @@ from sqlalchemy import desc
 
 
 def create_message(db: Session, message: MessageBase):
-    db_message = Message(**message.dict())
+    db_message = Message(**message.model_dump())
     db.add(db_message)
     db.commit()
     db.refresh(db_message)

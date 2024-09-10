@@ -31,7 +31,7 @@ async def knowledges(store: str):
     if store not in HTWDocument().store_list():
         return JSONResponse(
             status_code=400,
-            content=ErrorResponse(detail="Store not found").dict(),
+            content=ErrorResponse(detail="Store not found").model_dump(),
         )
     return BaseDataResponse(data=HTWDocument(store).get_docs())
 

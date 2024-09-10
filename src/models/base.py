@@ -19,7 +19,7 @@ class BaseDataResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    status: str = Field("error", const=True, description="The status of the response.")
+    status: str = Field("error", description="The status of the response.")
     detail: str
 
 
