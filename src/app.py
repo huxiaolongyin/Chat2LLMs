@@ -1,88 +1,44 @@
 import streamlit as st
-from haystack import Pipeline
 from haystack.dataclasses import ChatMessage
-from core import ChatBot 
+from core import ChatBot
 
-# Constants to store key names in the config dictionary
-TITLE_NAME = 'HTW ChatBot'
-UI_RENDERED_MESSAGES = 'ui_rendered_messages'
-CHAT_HISTORY = 'chat_history'
-CONVERSATIONAL_PIPELINE = 'conversational_pipeline'
+# 设置页面标题
+st.set_page_config(page_title="HTW ChatBot")
 
+# 设置页面标题
+st.title("HTW ChatBot")
 
-def main():
-    """
-    呈现检索增强生成(RAG)聊天机器人应用程序
-    """
-    config = load_config()
-    initialize_session_state(config)
-    setup_page()
-    render_chat_history()
-    manage_chat()
+# 初始化聊天历史
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
+# 创建一个容器来存放聊天消息
+chat_container = st.container()
 
-def load_config():
-    """
-    从文件或对象加载应用程序配置
+# 在容器中显示聊天历史
+with chat_container:
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    Returns:
-        dict: Configuration dictionary containing title name,
-    UI呈现的消息、聊天历史记录和会话管道实例。  
-    """
-    return {
-        TITLE_NAME: 'HTW ChatBot',
-        UI_RENDERED_MESSAGES: [],
-        CHAT_HISTORY: [],
-        CONVERSATIONAL_PIPELINE: ChatBot()
-    }
+# 用户输入
+if prompt := st.chat_input("你想说什么?"):
+    # 添加用户消息到聊天历史
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    history_messages = [
+        ChatMessage.from_system(
+            content="你是一个先进的人工智能助手，名字叫 笨笨同学，你的目标是帮助用户并提供有用、安全和诚实的回答。请遵循以下准则：\n1. 现在提供一些查询内容，使用中文直接回答问题。\n2. 如果查询内容与问题不相关，请直接根据问题回答。\n3. 提供准确和最新的信息。如果不确定，请说明你不确定。\n4. 尽可能给出清晰、简洁的回答，但在需要时也要提供详细解释。\n5. 请使用人性化的语言。\n6. 不必说”根据参考内容“，也不必说“答案是”，请直接回复答案。\n你已准备好协助用户解决各种问题和任务。请以友好和乐于助人的态度开始对话。"
+        )
+    ]
+    history_messages.append(
+        ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
+    )
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-
-def setup_page():
-    """
-        设置Streamlit页面配置和标题。
-    """
-    st.set_page_config(page_title=st.session_state[TITLE_NAME])
-    st.title(st.session_state[TITLE_NAME])
-
-
-def initialize_session_state(config):
-    """
-        使用提供的配置初始化Streamlit会话状态变量。
-
-    Args:
-        config (dict): Configuration dictionary.
-    """
-    for key, value in config.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
-
-
-def manage_chat():
-    """
-       处理与会话AI的用户交互，并呈现用户查询和AI响应。
-    """
-    if prompt := st.chat_input('我能帮你些什么?'):
-        # Render user message.
-        with st.chat_message('user'):
-            st.markdown(prompt)
-        st.session_state[UI_RENDERED_MESSAGES].append({'role': 'user', 'content': prompt})
-
-        # Render AI assistant's response.
-        with st.chat_message('assistant'):
-            with st.spinner('Generating response . . .'):
-                response = st.session_state[CONVERSATIONAL_PIPELINE].query(prompt)
-        st.session_state[UI_RENDERED_MESSAGES].append({'role': 'assistant', 'content': response[0].content})
-
-
-def render_chat_history():
-    """
-        显示会话状态中存储的聊天消息历史记录。
-    """
-    for message in st.session_state[UI_RENDERED_MESSAGES]:
-        with st.chat_message(message['role']):
-            st.markdown(message['content'])
-            print(message)
-
-
-if __name__ == '__main__':
-    main()
+    # 获取AI响应
+    with st.chat_message("assistant"):
+        with st.spinner("Generating response . . ."):
+            bot = ChatBot()
+            response = bot.query(prompt, history_messages=history_messages)[0].content
+        st.session_state.messages.append({"role": "assistant", "content": response})

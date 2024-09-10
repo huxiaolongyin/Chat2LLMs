@@ -1,16 +1,27 @@
-import datetime
 import os
 import asyncio
+import datetime
+import streamlit as st
+from typing import List
+from haystack import Pipeline, component
+from haystack.dataclasses import Document, ChatMessage, StreamingChunk
 from core.retrieval import HTWDocument
-from haystack import Pipeline
-from haystack.dataclasses import ChatMessage, StreamingChunk
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.builders import ChatPromptBuilder
 from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
-from haystack import component
-from typing import List
-from haystack.dataclasses import Document
 from haystack_integrations.components.generators.ollama import OllamaChatGenerator
+
+from openinference.instrumentation.haystack import HaystackInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+    OTLPSpanExporter,
+)
+from opentelemetry.sdk import trace as trace_sdk
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+
+endpoint = "http://localhost:6006/v1/traces"  # The URL to your Phoenix instance
+tracer_provider = trace_sdk.TracerProvider()
+tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint)))
+HaystackInstrumentor().instrument(tracer_provider=tracer_provider)
 
 
 @component
@@ -36,6 +47,11 @@ class ChatBot:
         :param is_streaming: 是否使用流式输出
         :param store: 知识库名称
         """
+        # 创建一个新的事件循环
+        loop = asyncio.new_event_loop()
+        # 将其设置为当前线程的事件循环
+        asyncio.set_event_loop(loop)
+        # 现在可以创建队列了
         self.queue = asyncio.Queue()
         self.running = True
         self.is_streaming = is_streaming
@@ -84,8 +100,12 @@ class ChatBot:
         self, question: str, top_k: int = 5, history_messages: ChatMessage = None
     ) -> str:
         """输出查询结果"""
+        self.placeholder = st.empty()
+        self.tokens = []
         if history_messages is None:
-            history_messages = [ChatMessage.from_user(question)]
+            history_messages = [
+                ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
+            ]
 
         # 创建一个任务来执行pipeline
         response = self.pipeline.run(
@@ -108,7 +128,9 @@ class ChatBot:
 
     def write_streaming_chunk(self, chunk: StreamingChunk):
         """写入流式输出的内容"""
-        self.queue.put_nowait(chunk.content)
+        self.queue.put_nowait(chunk)
+        self.tokens.append(chunk.content)
+        self.placeholder.write("".join(self.tokens))
 
     async def get_stream(self):
         while self.running:
@@ -117,6 +139,16 @@ class ChatBot:
                 if chunk == "None":
                     self.running = False
                 else:
-                    yield f"data: {chunk}\n\n"
+                    data = {
+                        "object": "message",
+                        "content": chunk.content,
+                        "role": chunk.meta["role"],
+                        "model": chunk.meta["model"],
+                        "done": chunk.meta["done"],
+                        "create_time": datetime.datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        ),
+                    }
+                    yield f"data: {data}\n\n"
             except asyncio.TimeoutError:
                 continue

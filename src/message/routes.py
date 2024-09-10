@@ -1,4 +1,3 @@
-import asyncio
 import threading
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -44,10 +43,7 @@ def _get_history_messages(db, message):
     summary="Create Message",
     response_model=BaseDataResponse,
 )
-async def new_message(
-    message: MessageBase,
-    db: Session = Depends(get_db),
-):
+async def new_message(db: Session = Depends(get_db), message: MessageBase = None):
     # 获取对话，如果不存在则返回错误
     chat = get_chat(db, chat_id=message.chat_id)
     if not chat:
@@ -55,30 +51,27 @@ async def new_message(
             status_code=400,
             content=ErrorResponse(detail="Chat not found").model_dump(),
         )
-    # 获取历史消息
-    history_messages = _get_history_messages(db, message)
     # 创建ChatBot
     ollama = ChatBot(store=message.store)
 
     def ollama_start():
-        return ollama.query(
+        from database.sqlite.connection import SessionLocal
+
+        # 写入问题
+        db: Session = SessionLocal()
+        create_message(db=db, message=message)
+        # 获取历史消息
+        history_messages = _get_history_messages(db, message)
+        ansewer = ollama.query(
             question=message.content, top_k=5, history_messages=history_messages
-        )
+        )[0].content
+        message.content, message.role = ansewer, "assistant"  # 写入回答
+        create_message(db=db, message=message)
 
-
-    write_thread = threading.Thread(target=ollama_start)
+    write_thread = threading.Thread(target=ollama_start, args=())
     write_thread.start()
 
     return StreamingResponse(ollama.get_stream(), media_type="text/event-stream")
-    # ansewer = ollama.query(
-    #     question=message.content, top_k=5, history_messages=history_messages
-    # )[0].content
-
-    create_message(db=db, message=message)  # 写入问题
-    message.content, message.role = ansewer, "assistant"  # 写入回答
-    create_message(db=db, message=message)
-
-    # return BaseDataResponse(data={"answer": ansewer})
 
 
 @router.get(
