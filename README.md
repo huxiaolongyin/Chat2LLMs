@@ -57,6 +57,10 @@ python -m phoenix.server.main serve
 # 启动 FastAPI 服务
 cd src
 uvicorn main:app --reload
+
+# 启动 Streamlit 服务
+cd src
+streamlit run app.py
 ```
 
 
@@ -69,10 +73,14 @@ uvicorn main:app --reload
 - [x] 支持助手管理
 - [x] 支持会话管理
 - [x] 实时流处理
+- [ ] 一个简单的页面
+  - [ ] 知识库管理
+  - [ ] 知识内容管理
+- [ ] 支持Docker Compose 部署
 
 ## V0.2.0
 - [ ] 支持 Mysql
-- [ ] 支持Docker Compose 部署
+
 - [ ] 支持文本模型选择、嵌入模型选择
 - [ ] 支持语音交互
 - [ ] 支持 doc 文件上传管理

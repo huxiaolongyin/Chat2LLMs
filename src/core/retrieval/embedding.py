@@ -57,6 +57,16 @@ class HTWDocument:
 
         return collections
 
+    def get_store_list(self) -> List[str]:
+        """获取所有知识库名称"""
+        client = QdrantClient(host=self.db_host, port=self.port)
+        collections = [
+            index.name
+            for index in client.get_collections().collections
+            if (collection_info := client.get_collection(index.name))
+        ]
+        return collections
+
     def write_docs(
         self,
         docs: List[str] = None,
