@@ -6,6 +6,7 @@ from haystack.components.writers import DocumentWriter
 from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
 from transformers import BertConfig
 from qdrant_client import QdrantClient
+from schemas import StoreBase, DocumentBase
 
 
 class HTWDocument:
@@ -39,11 +40,22 @@ class HTWDocument:
         )
         return document_store
 
-    def store_list(self) -> List[str]:
-        """获取所有知识库的名称"""
+    def store_collections(self) -> List[StoreBase]:
+        """获取所有知识库详细信息"""
         client = QdrantClient(host=self.db_host, port=self.port)
-        indexes = client.get_collections().collections
-        return [index.name for index in indexes]
+        collections = [
+            StoreBase(
+                store_name=index.name,
+                status=collection_info.status,
+                document_count=collection_info.points_count,
+                embedding_size=collection_info.config.params.vectors.size,
+                distance=collection_info.config.params.vectors.distance.value,
+            )
+            for index in client.get_collections().collections
+            if (collection_info := client.get_collection(index.name))
+        ]
+
+        return collections
 
     def write_docs(
         self,
@@ -62,21 +74,30 @@ class HTWDocument:
         )
         indexing_pipeline.connect("embedder", "writer")
         res = indexing_pipeline.run({"documents": documents})
+        print(res)
         return res
 
-    def get_docs(self, filter: Dict[str, str] = None):
+    def get_documents(self, filter: Dict[str, str] = None) -> List[DocumentBase]:
         """获取知识库内容，若没有，则返回所有知识内容"""
-        docs = self.document_store.filter_documents(filter)
-        res = []
-        for doc in docs:
-            res.append({"id": doc.id, "content": doc.content})
+        documents = self.document_store.filter_documents(filter)
 
-        return res
+        result = [DocumentBase(id=doc.id, content=doc.content) for doc in documents]
+        print(result)
+        # res = []
+        # for doc in docs:
+        #     res.append({"id": doc.id, "content": doc.content})
+
+        return result
 
     def del_docs(self, ids: List[str] = None):
         """删除知识内容"""
         return self.document_store.delete_documents(ids)
-    
+
     def del_store(self, store: str = None):
         """删除知识库"""
-        pass
+        client = QdrantClient(host=self.db_host, port=self.port)
+        try:
+            client.delete_collection(collection_name=store)
+            return {"delete_status": "SUCCESS"}
+        except Exception as e:
+            return {"delete_status": "ERROR", "message": str(e)}

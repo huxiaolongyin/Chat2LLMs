@@ -1,7 +1,13 @@
-import uvicorn
-from config import CONFIG
+from fastapi import FastAPI
+from api.routes import router
 
 
-if __name__ == "__main__":
+def create_app():
+    from core.config import CONFIG
 
-    uvicorn.run("fastapi_app:app", host="0.0.0.0", port=CONFIG.SERVICE_PORT, workers=1)
+    app = FastAPI(title="Chat2LLMs", version=CONFIG.VERSION)
+    app.include_router(router, prefix=CONFIG.WEB_ROUTE_PREFIX)
+    return app
+
+
+app = create_app()

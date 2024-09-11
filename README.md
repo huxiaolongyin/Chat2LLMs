@@ -31,18 +31,34 @@
 # 文件结构
 ```powershell
 src
-    ├─assistant # 助手
-    ├─auth # 用户认证
-    ├─chat # 聊天
-    ├─config # 设置
-    ├─core # 核心
-    ├─database # 数据库管理
-    ├─knowledge # 知识库管理
-    ├─manage # 管理服务
-    ├─message # 消息
-    ├─models # 数据库、表对象模型
+    ├─api
+    │  ├─v1             # api 版本
+    │  └─router.py      # 主路由
+    ├─core              # 核心模块
+    │  ├─database       # 数据库处理
+    │  │  ├─redis       # 缓冲区
+    │  │  └─sqlite      # 数据库
+    │  ├─llms           # 大模型交互
+    │  └─retrieval      # 向量数据库
+    ├─models            # 对象模型
+    ├─schemas           # 数据模型
+    ├─services          # 服务   
+    ├─app.py            # streamlit 主程序(一个简单的页面)
+    └─main.py           # 主程序
 
 ```
+
+# 启动方式
+## 测试
+```powershell
+# 启动 Arize Phoenix RAG监控服务
+python -m phoenix.server.main serve
+
+# 启动 FastAPI 服务
+cd src
+uvicorn main:app --reload
+```
+
 
 # 开发计划
 ## V0.1.0
@@ -55,6 +71,7 @@ src
 - [x] 实时流处理
 
 ## V0.2.0
+- [ ] 支持 Mysql
 - [ ] 支持Docker Compose 部署
 - [ ] 支持文本模型选择、嵌入模型选择
 - [ ] 支持语音交互
