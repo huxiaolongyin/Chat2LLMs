@@ -84,7 +84,6 @@ class HTWDocument:
         )
         indexing_pipeline.connect("embedder", "writer")
         res = indexing_pipeline.run({"documents": documents})
-        print(res)
         return res
 
     def get_documents(self, filter: Dict[str, str] = None) -> List[DocumentBase]:
@@ -92,10 +91,6 @@ class HTWDocument:
         documents = self.document_store.filter_documents(filter)
 
         result = [DocumentBase(id=doc.id, content=doc.content) for doc in documents]
-        print(result)
-        # res = []
-        # for doc in docs:
-        #     res.append({"id": doc.id, "content": doc.content})
 
         return result
 

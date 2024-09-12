@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from schemas.base import BaseDataResponse, ErrorResponse
 from fastapi.responses import JSONResponse, StreamingResponse
-from core.database import sqlite_connection
-from schemas.message import MessageBase, MessageBaseResponse
+from core.database import get_db
+from schemas.message import MessageBase, MessageBaseResponse, MessageBaseRequest
 from services.chat import get_chat
 from services.message import create_message, get_messages
 from core.chatbot import ChatBot
@@ -15,7 +15,7 @@ from haystack.dataclasses import ChatMessage
 router = APIRouter()
 
 
-def _get_history_messages(db, message):
+def _get_history_messages(db, message: MessageBaseRequest):
     assistant_id = get_chat(db=db, chat_id=message.chat_id).assistant_id
     prompt = get_assistant(db=db, assistant_id=assistant_id).prompt
     db_messages = get_messages(db=db, chat_id=message.chat_id, skip=0, limit=100)
@@ -23,11 +23,11 @@ def _get_history_messages(db, message):
     history_messages = []
     history_messages.append(ChatMessage.from_system(content=prompt))
     for db_message in db_messages[message.context_length : 0 : -1]:
-        if db_message.role == "user":
-            history_message = ChatMessage.from_user(db_message.content)
-        elif db_message.role == "assistant":
-            history_message = ChatMessage.from_assistant(db_message.content)
-        history_messages.append(history_message)
+        question_message = ChatMessage.from_user(db_message.question)
+        answer_message = ChatMessage.from_assistant(db_message.answer)
+        history_messages.append(question_message)
+        history_messages.append(answer_message)
+        
     # 添加提示词
     history_messages.append(
         ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
@@ -43,8 +43,9 @@ def _get_history_messages(db, message):
     response_model=BaseDataResponse,
 )
 async def new_message(
-    db: Session = Depends(sqlite_connection), message: MessageBase = None
+    db: Session = Depends(get_db), message: MessageBaseRequest = None
 ):
+
     # 获取对话，如果不存在则返回错误
     chat = get_chat(db, chat_id=message.chat_id)
     if not chat:
@@ -52,24 +53,30 @@ async def new_message(
             status_code=400,
             content=ErrorResponse(detail="Chat not found").model_dump(),
         )
+
     # 创建ChatBot
     ollama = ChatBot(store=message.store)
 
-    def ollama_start():
+    # 获取历史消息
+    history_messages = _get_history_messages(db, message)
+
+    def ollama_start(message, history_messages):
         from core.database import SessionLocal
-
-        # 写入问题
         db: Session = SessionLocal()
-        create_message(db=db, message=message)
-        # 获取历史消息
-        history_messages = _get_history_messages(db, message)
+
+        # 获取回答
         ansewer = ollama.query(
-            question=message.content, top_k=5, history_messages=history_messages
+            question=message.question, top_k=5, history_messages=history_messages
         )[0].content
-        message.content, message.role = ansewer, "assistant"  # 写入回答
+        
+        # 写入数据
+        message = MessageBase(**message.model_dump(), answer=ansewer)
         create_message(db=db, message=message)
 
-    write_thread = threading.Thread(target=ollama_start, args=())
+    # 由于stream_back 不能异步，所以使用多线程操作
+    write_thread = threading.Thread(
+        target=ollama_start, args=([message, history_messages])
+    )
     write_thread.start()
 
     return StreamingResponse(ollama.get_stream(), media_type="text/event-stream")
@@ -86,7 +93,7 @@ async def message_list(
     chat_id: str,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(sqlite_connection),
+    db: Session = Depends(get_db),
 ):
     """获取历史消息"""
     db_messages = get_messages(db=db, chat_id=chat_id, skip=skip, limit=limit)

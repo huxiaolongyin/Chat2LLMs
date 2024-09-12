@@ -60,7 +60,7 @@ uvicorn main:app --reload
 
 # 启动 Streamlit 服务
 cd src
-streamlit run app.py
+streamlit run ChatBot.py
 ```
 
 

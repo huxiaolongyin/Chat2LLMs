@@ -6,7 +6,7 @@ from schemas import (
     BaseDataResponse,
 )
 from fastapi.responses import JSONResponse
-from core.database import sqlite_connection
+from core.database import get_db
 from sqlalchemy.orm import Session
 from services.assistant import (
     create_assistant,
@@ -27,7 +27,7 @@ router = APIRouter()
     response_model=AssistantBaseResponse,
 )
 async def new_assistant(
-    assistant: AssistantBaseRequset, db: Session = Depends(sqlite_connection)
+    assistant: AssistantBaseRequset, db: Session = Depends(get_db)
 ):
     """创建助手"""
     db_assistant = create_assistant(db=db, assistant=assistant)
@@ -51,7 +51,7 @@ async def new_assistant(
 async def assistants_list(
     skip: int = Query(0, ge=0, description="跳过"),
     limit: int = Query(100, ge=1, le=100, description="返回数量"),
-    db: Session = Depends(sqlite_connection),
+    db: Session = Depends(get_db),
 ):
     """获取助手列表"""
     assistants = get_assistants(db, skip=skip, limit=limit)
@@ -68,7 +68,7 @@ async def assistants_list(
 async def up_assistant(
     assistant: AssistantBaseRequset,
     assistant_id: str,
-    db: Session = Depends(sqlite_connection),
+    db: Session = Depends(get_db),
 ):
     """更新助手"""
     db_assistant = update_assistant(
@@ -90,7 +90,7 @@ async def up_assistant(
     summary="Delete Assistants",
     response_model=AssistantBaseResponse,
 )
-async def del_assistant(assistant_id: str, db: Session = Depends(sqlite_connection)):
+async def del_assistant(assistant_id: str, db: Session = Depends(get_db)):
     """删除助手"""
     db_assistant = delete_assistant(db=db, assistant_id=assistant_id)
     if db_assistant is None:

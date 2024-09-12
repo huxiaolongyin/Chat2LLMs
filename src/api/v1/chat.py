@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from core.database import sqlite_connection
+from core.database import get_db
 from schemas import ChatBaseResponse, ErrorResponse, ChatBaseRequest, ChatBaseRequest
 from sqlalchemy.orm import Session
 from services.chat import (
@@ -31,7 +31,7 @@ def check_assistant(db, assistant_id):
     summary="获取全部会话",
     response_model=ChatBaseResponse,
 )
-async def chat_list(assistant_id, db: Session = Depends(sqlite_connection)):
+async def chat_list(assistant_id, db: Session = Depends(get_db)):
     """获取全部会话"""
     check_assistant(db, assistant_id)
     db_chat = get_chat_for_assistant(db=db, assistant_id=assistant_id)
@@ -45,7 +45,7 @@ async def chat_list(assistant_id, db: Session = Depends(sqlite_connection)):
     summary="创建会话",
     response_model=ChatBaseResponse,
 )
-async def new_chat(data: ChatBaseRequest, db: Session = Depends(sqlite_connection)):
+async def new_chat(data: ChatBaseRequest, db: Session = Depends(get_db)):
     """创建会话"""
     check_assistant(db, data.assistant_id)
     db_chat = create_chat(db=db, data=data)
@@ -59,7 +59,7 @@ async def new_chat(data: ChatBaseRequest, db: Session = Depends(sqlite_connectio
     summary="更新会话",
     response_model=ChatBaseResponse,
 )
-async def up_chat(chat_id, title: str, db: Session = Depends(sqlite_connection)):
+async def up_chat(chat_id, title: str, db: Session = Depends(get_db)):
     assistant = get_chat(db, chat_id=chat_id)
     if not assistant:
         return JSONResponse(
@@ -77,7 +77,7 @@ async def up_chat(chat_id, title: str, db: Session = Depends(sqlite_connection))
     summary="删除会话",
     response_model=ChatBaseResponse,
 )
-async def del_chat(chat_id, db: Session = Depends(sqlite_connection)):
+async def del_chat(chat_id, db: Session = Depends(get_db)):
     """删除会话"""
     chat = get_chat(db, chat_id=chat_id)
     if not chat:

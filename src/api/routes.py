@@ -6,12 +6,6 @@ from api.v1 import (
     message_router,
     manage_router,
 )
-# from models.assistant import Base
-# from core.database import sqlite_connection
-
-
-# # 创建数据库
-# assistant.Base.metadata.create_all(bind=sqlite_connection.engine)
 
 router = APIRouter()
 
