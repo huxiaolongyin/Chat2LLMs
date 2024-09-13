@@ -1,10 +1,11 @@
+from core.config import CONFIG
 from haystack_integrations.components.generators.ollama import OllamaChatGenerator
 from haystack.components.generators.utils import print_streaming_chunk
 from core.chatbot import ChatBot
 
 def Ollama(
     model: str = "llama3.1",
-    url: str = "http://192.168.30.66:11434/api/chat",
+    url: str = f"{CONFIG.OLLAMA_URL}/api/chat",
     is_streaming: bool = False,
     token_length: int = 512,
 ):

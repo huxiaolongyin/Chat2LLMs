@@ -1,6 +1,7 @@
 import os
 import asyncio
 import datetime
+from core.config import CONFIG
 import streamlit as st
 from typing import List
 from haystack import Pipeline, component
@@ -37,7 +38,7 @@ class DocumentProcessor:
 
 class ChatBot:
     # 使用的 Embedding 模型
-    embedding_model_path = os.getenv("MODEL_PATH")
+    embedding_model_path = CONFIG.EMBEDDING_MODEL_PATH
 
     def __init__(
         self,
@@ -59,7 +60,7 @@ class ChatBot:
         self.document_store = HTWDocument(store).document_store
         self.llm = OllamaChatGenerator(
             model="llama3.1",
-            url="http://192.168.30.66:11434/api/chat",
+            url=f"{CONFIG.OLLAMA_URL}/api/chat",
             generation_kwargs={
                 "num_predict": 512,
                 "temperature": 0.4,

@@ -1,7 +1,7 @@
 # 虚拟环境
 .venv
 # 环境变量
-.env
+# .env
 # python临时文件
 **_pycache__
 # vscode设置

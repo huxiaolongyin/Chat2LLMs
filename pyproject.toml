@@ -13,7 +13,12 @@ dependencies = [
     "sentence-transformers>=2.3.0",
     "qdrant-haystack==4.2.0",
     "ollama-haystack==0.0.7",
-    "protobuf==5.27.0"
+    "protobuf>=3.20,<5.0",
+    "streamlit==1.38.0",
+    "openinference-instrumentation-haystack==0.1.12",
+    "opentelemetry-sdk==1.27.0",
+    "opentelemetry-exporter-otlp==1.27.0",
+    "arize-phoenix==4.32.0"
 ]
 
 [project.optional-dependencies]

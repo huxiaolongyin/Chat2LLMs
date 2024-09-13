@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 
 dotenv_path = "D:/code/chat2LLMs/.env"
 load_dotenv(dotenv_path=dotenv_path)
-default_env_values = {"SERVICE_PORT": 8000}
 
 
 def load_str_env(name: str, required: bool = False) -> str:
@@ -15,9 +14,6 @@ def load_str_env(name: str, required: bool = False) -> str:
     """
     if os.environ.get(name):
         return os.environ.get(name)
-
-    if default_env_values.get(name) is not None:
-        return default_env_values.get(name)
 
     if required:
         raise Exception(f"Env {name} is not set")
@@ -32,9 +28,6 @@ def load_int_env(name: str, required: bool = False) -> int:
     if os.environ.get(name):
         return int(os.environ.get(name))
 
-    if default_env_values.get(name) is not None:
-        return default_env_values.get(name)
-
     if required:
         raise Exception(f"Env {name} is not set")
 
@@ -46,11 +39,19 @@ class Config:
         from __init__ import __VERSION__
 
         self.VERSION = __VERSION__
-        self.SERVICE_PORT = load_int_env("SERVICE_PORT", required=True)
         self.DB_SQLITE_PATH = load_str_env("DB_SQLITE_PATH", required=True)
 
         # web
         self.WEB_ROUTE_PREFIX = "/api/v1"
+
+        # OLLAMA
+        self.OLLAMA_URL = load_str_env("OLLAMA_URL", required=True)
+
+        # QRANT
+        self.QRANT_HOST = load_str_env("QRANT_HOST", required=True)
+        self.QRANT_PORT = load_int_env("QRANT_PORT", required=True)
+
+        self.EMBEDDING_MODEL_PATH = load_str_env("EMBEDDING_MODEL_PATH", required=True)
 
 
 CONFIG = Config()

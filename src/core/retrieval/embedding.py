@@ -1,5 +1,6 @@
 import os
 from typing import List, Dict
+from core.config import CONFIG
 from haystack import Pipeline, Document
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.writers import DocumentWriter
@@ -17,9 +18,9 @@ class HTWDocument:
     def __init__(
         self,
         store: str = "Document",
-        model_path: str = os.getenv("MODEL_PATH"),
-        db_host: str = "localhost",
-        port: int = 6333,
+        model_path: str = CONFIG.EMBEDDING_MODEL_PATH,
+        db_host: str = CONFIG.QRANT_HOST,
+        port: int = CONFIG.QRANT_PORT,
     ):
         self.store = store
         self.model_path = model_path

@@ -1,21 +1,19 @@
-FROM python:3.8-slim
+FROM bitnami/pytorch:1.13.0
 
 WORKDIR /code
 
-COPY ./pyproject.toml ./code
+COPY ./pyproject.toml .
 
-COPY ./src ./code/src
+COPY ./README.md .
 
-# 移动虚拟环境
-COPY ./.venv ./code/.venv
+COPY ./src ./src
 
-ENV PATH="/code/.venv/Scripts:$PATH"
+USER root
+RUN pip3 install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip3 install . -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-RUN python -m pip install .
+COPY ./start.sh .
 
+EXPOSE 8000 6006 8501
 
-EXPOSE 8000
-
-CMD unicorn src.fastapi_app:app \
-    --host 0.0.0.0 \
-    --port 8000 \
+CMD ["/code/start.sh"]
