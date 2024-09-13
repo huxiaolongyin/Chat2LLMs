@@ -55,12 +55,11 @@ src
 python -m phoenix.server.main serve
 
 # 启动 FastAPI 服务
-cd src
-uvicorn main:app --reload
+uvicorn src.main:app --reload
 
 # 启动 Streamlit 服务
 cd src
-streamlit run ChatBot.py
+streamlit run src/ChatBot.py
 ```
 
 

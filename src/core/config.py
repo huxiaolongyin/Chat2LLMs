@@ -2,8 +2,7 @@ import os
 from dotenv import load_dotenv
 
 
-dotenv_path = "D:/code/chat2LLMs/.env"
-load_dotenv(dotenv_path=dotenv_path)
+# load_dotenv(override=True)
 
 
 def load_str_env(name: str, required: bool = False) -> str:

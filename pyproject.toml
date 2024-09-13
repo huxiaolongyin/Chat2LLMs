@@ -18,7 +18,7 @@ dependencies = [
     "openinference-instrumentation-haystack==0.1.12",
     "opentelemetry-sdk==1.27.0",
     "opentelemetry-exporter-otlp==1.27.0",
-    "arize-phoenix==4.32.0"
+    "arize-phoenix==4.32.0",
 ]
 
 [project.optional-dependencies]
