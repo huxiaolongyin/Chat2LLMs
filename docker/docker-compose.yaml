@@ -1,15 +1,16 @@
-version: '0.0.5'
+version: '0.0.6'
+name: chat2llms
 services:
   backend:
-    image: chat2llms:0.0.5
+    image: chat2llms:0.0.6
     container_name: chat2llms
     ports:
       - "8000:8000"
       - "6006:6006"
       - "8501:8501"
     volumes:
-      - D:\\code\\chat2LLMs\\data\\sqlite:/code/sqlite
-      - D:\\code\\BigModel\\360Zhinao-search:/BigModels/360Zhinao-search
+      - ${DATA_PATH}/sqlite:/code/sqlite
+      - ${EMBEDDING_MODEL_PATH}:/BigModels/360Zhinao-search
     depends_on:
       - qdrant
     environment:
@@ -17,7 +18,7 @@ services:
       - DB_SQLITE_PATH=/code/sqlite/chat2llms.db
       - QRANT_HOST=qdrant
       - QRANT_PORT=6333
-      - OLLAMA_URL=${OLLAMA_URL:-http://123130.0.1:11434}
+      - OLLAMA_URL=${OLLAMA_URL}
     networks:
       - my-network
 
@@ -29,7 +30,7 @@ services:
       - "6333:6333"
       - "6334:6334"
     volumes:
-      - ../data/qdrant_storage:/qdrant/storage
+      - ${DATA_PATH}\qdrant_storage:/qdrant/storage
     networks:
       - my-network
 networks:

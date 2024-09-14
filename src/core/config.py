@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 
-# load_dotenv(override=True)
+load_dotenv(override=True)
 
 
 def load_str_env(name: str, required: bool = False) -> str:

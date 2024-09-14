@@ -30,7 +30,7 @@ with sqlite_connection() as db:
         .order_by("date")
     )
 
-
+st.markdown("### 交流统计")
 statistics_df = pd.DataFrame(statistics.all(), columns=["date", "message_count"])
 st.line_chart(
     data=statistics_df,
@@ -43,7 +43,7 @@ st.line_chart(
     color="#ce393c",
 )
 st.markdown("---")
-st.markdown("评价统计")
+st.markdown("### 评价统计")
 
 eval_df = pd.DataFrame(eval.all(), columns=["date", "evaluation", "total"])
 chart_data = pd.DataFrame(
