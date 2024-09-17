@@ -58,7 +58,6 @@ python -m phoenix.server.main serve
 uvicorn src.main:app --reload
 
 # 启动 Streamlit 服务
-cd src
 streamlit run src/ChatBot.py
 ```
 
@@ -79,7 +78,7 @@ streamlit run src/ChatBot.py
   - [ ] 知识内容管理
   - [x] 使用分析
   - [x] 问题反馈
-  - [ ] 使用帮助
+  - [x] 使用帮助
 - [x] 支持Docker Compose 部署
 
 ## V0.2.0
