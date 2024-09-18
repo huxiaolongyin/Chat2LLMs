@@ -1,4 +1,3 @@
-import os
 import asyncio
 import datetime
 from core.config import CONFIG
@@ -100,7 +99,7 @@ class ChatBot:
 
     def query(
         self, question: str, top_k: int = 5, history_messages: ChatMessage = None
-    ) -> str:
+    ) -> dict:
         """输出查询结果"""
         self.placeholder = st.empty()
         self.tokens = []
@@ -108,7 +107,7 @@ class ChatBot:
             history_messages = [
                 ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
             ]
-
+        
         # 创建一个任务来执行pipeline
         response = self.pipeline.run(
             data={
@@ -118,15 +117,17 @@ class ChatBot:
                 },
                 "text_embedder": {"text": question},
                 "messages": {"question": question, "template": history_messages},
-            }
-        )["llm"]
+            },
+            include_outputs_from="retriever"
+        )
+        documents = response["retriever"]['documents']
+        answer = response["llm"]["replies"][0].content
 
         # 标记流的结束
         self.queue.put_nowait("None")
-        if "replies" in response:
-            return response["replies"]
-        else:
-            raise Exception("No replies found in response")
+
+        return answer, documents
+
 
     def write_streaming_chunk(self, chunk: StreamingChunk):
         """写入流式输出的内容"""
@@ -154,3 +155,14 @@ class ChatBot:
                     yield f"data: {data}\n\n"
             except asyncio.TimeoutError:
                 continue
+
+    def display_references(self, documents: List[Document]):
+        """显示文档引用"""
+        if documents:
+            with st.expander("参考文档"):
+                for doc in documents:
+                    st.write(f"相关度: {doc.score*100:.2f}%。内容：{doc.content}")
+                    if doc.meta:
+                        st.write("元数据:")
+                        for key, value in doc.meta.items():
+                            st.write(f"- {key}: {value}")          

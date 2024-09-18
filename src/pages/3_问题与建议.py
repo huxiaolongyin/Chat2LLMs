@@ -2,13 +2,21 @@ import streamlit as st
 from core.database import sqlite_connection
 from models.suggestion import Suggestion
 
-st.set_page_config(page_title="HTW ChatBot", page_icon=":robot:")
+st.set_page_config(
+    page_title="HTW ChatBot",
+    page_icon="🤖",
+)
 
+# 加载自定义样式
+with open("src/asset/css/custom.css", encoding="utf-8") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    
 st.title("💡 问题与建议")
 
 # 初始化session state
 if "text_input" not in st.session_state:
     st.session_state.text_input = ""
+
 
 # 定义回调函数
 def submit_suggestion():
@@ -18,6 +26,7 @@ def submit_suggestion():
         db.commit()
     st.session_state.text_input = ""  # 清空输入
     st.success("谢谢您宝贵的建议")
+
 
 # 使用回调函数创建文本区域和提交按钮
 text = st.text_area("输入你的问题或建议：", key="text_input")

@@ -3,7 +3,12 @@ from core.retrieval import HTWDocument
 import pandas as pd
 
 
-st.set_page_config(page_title="HTW ChatBot", page_icon=":robot:")
+st.set_page_config(page_title="HTW ChatBot", page_icon="🤖",)
+
+# 加载自定义样式
+with open("src/asset/css/custom.css", encoding="utf-8") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
 st.title("📝 知识库管理")
 st.caption("🚀 汉特云公司的知识库管理系统")
 
@@ -24,14 +29,13 @@ def new_knowledge(name: str):
 
 
 with st.sidebar:
-    store_select = st.selectbox(
+    knowledge_select = st.selectbox(
         "请选择知识库",
         store_list,
-        key="knowledge",
-        index=store_list.index(st.session_state.knowledge),
+        key="knowledge_select",
     )
     knowledge_list = [
-        item.model_dump() for item in HTWDocument(store_select).get_documents()
+        item.model_dump() for item in HTWDocument(knowledge_select).get_documents()
     ]
     total = len(knowledge_list)
     st.metric(label="知识总数", value=total)
@@ -50,7 +54,7 @@ with st.sidebar:
     del_button = st.button(
         "删除知识库",
         on_click=HTWDocument().del_store,
-        args=(store_select,),
+        args=(knowledge_select,),
         use_container_width=True,
         key="del_knowledge",
     )
@@ -83,10 +87,10 @@ uploader_file = st.file_uploader(
 
 def upload_knowledge(documents: list):
     total = len(documents)
-    with st.status(f"正在上传知识到{store_select}...") as status:
+    with st.status(f"正在上传知识到{knowledge_select}...") as status:
         progress_bar = st.progress(0)
         for i, document in enumerate(documents):
-            HTWDocument(store_select).write_docs([document])
+            HTWDocument(knowledge_select).write_docs([document])
             progress_bar.progress((i + 1) / total)
         status.update(label="知识库上传成功", state="complete", expanded=False)
 

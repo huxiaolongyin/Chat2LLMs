@@ -1,10 +1,23 @@
+import re
 import streamlit as st
 from haystack.dataclasses import ChatMessage
+from models import Message
+from core.database import sqlite_connection
 
 
-def on_knowledge_change(knowledge):
-    """更新知识库"""
-    st.session_state.knowledge = knowledge
+def on_feedback_change():
+    """反馈选项改变时的回调函数"""
+    feedback_value = st.session_state.feedback
+
+    with sqlite_connection() as db:
+        message = (
+            db.query(Message)
+            .filter(Message.message_id == st.session_state.message_id)
+            .first()
+        )
+        if message:
+            message.evaluation = feedback_value
+            db.commit()
 
 
 def get_history_messages(messages: list = None) -> list:

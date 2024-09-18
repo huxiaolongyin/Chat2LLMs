@@ -27,7 +27,7 @@ def _get_history_messages(db, message: MessageBaseRequest):
         answer_message = ChatMessage.from_assistant(db_message.answer)
         history_messages.append(question_message)
         history_messages.append(answer_message)
-        
+
     # 添加提示词
     history_messages.append(
         ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
@@ -62,13 +62,14 @@ async def new_message(
 
     def ollama_start(message, history_messages):
         from core.database import SessionLocal
+
         db: Session = SessionLocal()
 
         # 获取回答
-        ansewer = ollama.query(
+        ansewer, _ = ollama.query(
             question=message.question, top_k=5, history_messages=history_messages
-        )[0].content
-        
+        )
+
         # 写入数据
         message = MessageBase(**message.model_dump(), answer=ansewer)
         create_message(db=db, message=message)

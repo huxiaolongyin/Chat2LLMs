@@ -4,8 +4,12 @@ from sqlalchemy import func
 from core.database import sqlite_connection
 import pandas as pd
 
-st.set_page_config(page_title="HTW ChatBot", page_icon=":robot:")
+st.set_page_config(page_title="HTW ChatBot", page_icon="🤖",)
 
+# 加载自定义样式
+with open("src/asset/css/custom.css", encoding="utf-8") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    
 st.title("🎢 使用分析")
 st.caption("🚀 聊天记录统计")
 

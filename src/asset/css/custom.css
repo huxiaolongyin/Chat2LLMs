@@ -1,0 +1,34 @@
+/* # #MainMenu {visibility: hidden;} */
+footer {
+    visibility: hidden;
+}
+
+/* 使用data-testid属性选择器 */
+[data-testid="stSidebarUserContent"] {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #505158;
+}
+
+/* 隐藏分隔线按钮 */
+[data-testid="stSidebarNavSeparator"] {
+    display: none;
+}
+
+/* 隐藏部署按钮 */
+.stAppDeployButton {
+    display: none;
+}
+
+
+/* [data-testid="stDecoration"] {
+    display: none;
+} */
+
+/* 隐藏菜单按钮 */
+[data-testid="stMainMenu"] {
+    display: none;
+}
