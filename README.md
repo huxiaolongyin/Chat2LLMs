@@ -47,9 +47,17 @@ src
     └─main.py           # 主程序
 
 ```
+# 安装
+```powershell
+# 建议安装虚拟环境
+python -m venv .venv
+# 激活虚拟环境
+.venv\Scripts\activate
+# 安装依赖： -e 表示开发环境
+python -m pip install -e .
+```
 
 # 启动方式
-## 测试
 ```powershell
 # 启动 Arize Phoenix RAG监控服务
 python -m phoenix.server.main serve
@@ -81,23 +89,25 @@ streamlit run src/ChatBot.py
 
 ## V0.1.0
 ### 核心
+- [x] 由sqlite 切换至 Mysql
 - [x] 实时流处理
 - [x] 知识库管理
 - [x] 知识内容管理
+- [x] 支持部分模型切换(ollama 系列)
+- [x] 支持函数调用
 ### app页面
 - [x] 使用分析
 - [x] 问题反馈
 - [x] 使用帮助
 - [x] 支持查看问答引用文档
 - [x] 支持 Excel 文件上传处理
-- [ ] 版本记录
+- [x] 版本记录
 ### 部署
 - [x] 支持Docker Compose 部署
 
 
 ## V0.2.0
 ### 核心
-- [ ] 支持 Mysql
 - [ ] 支持文本模型选择、嵌入模型选择
 - [ ] 支持语音交互
 - [ ] 支持 doc 文件上传管理

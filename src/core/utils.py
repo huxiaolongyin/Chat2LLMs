@@ -1,8 +1,10 @@
 import asyncio
+from core.config.setting import CONFIG
+import requests
 import streamlit as st
 from typing import List
 from models import Message
-from core.database import sqlite_connection
+from core.database import sql_connection
 from haystack.dataclasses import StreamingChunk, Document, ChatMessage
 
 
@@ -25,7 +27,7 @@ def on_feedback_change():
     """反馈选项改变时的回调函数"""
     feedback_value = st.session_state.feedback
 
-    with sqlite_connection() as db:
+    with sql_connection() as db:
         message = (
             db.query(Message)
             .filter(Message.message_id == st.session_state.message_id)
@@ -69,7 +71,7 @@ def display_references(documents: List[Document]):
 def insert_message(question, answer, store, context_length: int = 8):
     """插入消息到数据库"""
     # 插入消息到数据库
-    with sqlite_connection() as db:
+    with sql_connection() as db:
         message = Message(
             chat_id="Browser_APP",
             question=question,
@@ -90,6 +92,15 @@ def model_change():
     st.session_state.model_select_index = st.session_state.model_list.index(
         st.session_state.model_select
     )
+
+    # ollama_persist(model=st.session_state.model_select)
+
+
+def ollama_persist(model: str):
+    """持久化ollama模型"""
+    json_data = {"model": model, "messages": [], "keep_alive": "-1m"}
+    url = f"http://{CONFIG.OLLAMA_URL}/api/chat"
+    requests.post(url=url, json=json_data)
 
 
 def knowledge_change():
@@ -126,13 +137,12 @@ class StreamingMannager:
 
 
 from fuzzywuzzy import process
-from core.database import sqlite_connection
 from sqlalchemy import text
 
 
 def find_city_code(city_name):
     """根据城市名称找到城市代码"""
-    with sqlite_connection() as session:
+    with sql_connection() as session:
         city_code = session.execute(text("SELECT * FROM city_code")).fetchall()
     city_code_dict = {city[0]: city[1] for city in city_code}
     best_match = process.extractOne(city_name, city_code_dict.keys())

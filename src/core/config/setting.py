@@ -56,5 +56,11 @@ class Config:
         # WETHER
         self.API_KEY = load_str_env("API_KEY", required=True)
 
+        # MYSQL
+        self.DB_MYSQL_USER = load_str_env("DB_MYSQL_USER", required=True)
+        self.DB_MYSQL_PASSWORD = load_str_env("DB_MYSQL_PASSWORD", required=True)
+        self.DB_MYSQL_HOST = load_str_env("DB_MYSQL_HOST", required=True)
+        self.DB_MYSQL_PORT = load_int_env("DB_MYSQL_PORT", required=True)
+        self.DB_MYSQL_DATABASE = load_str_env("DB_MYSQL_DATABASE", required=True)
 
 CONFIG = Config()

@@ -32,6 +32,7 @@ def generate_pipeline(
         generation_kwargs={
             "num_predict": 512,
             "temperature": 0.4,
+            "keep_alive": '24h', # -1 为永久
         },
         streaming_callback=SMer.write_streaming_chunk,
     )

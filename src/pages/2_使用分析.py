@@ -1,7 +1,7 @@
 import streamlit as st
 from models import Message
 from sqlalchemy import func
-from core.database import sqlite_connection
+from core.database import sql_connection
 import pandas as pd
 
 st.set_page_config(page_title="HTW ChatBot", page_icon="🤖",)
@@ -14,23 +14,24 @@ st.title("🎢 使用分析")
 st.caption("🚀 聊天记录统计")
 
 
-with sqlite_connection() as db:
+with sql_connection() as db:
     statistics = (
         db.query(
-            func.date(Message.create_time).label("date"),
+            func.date_format(Message.create_time, '%Y-%m-%d').label("date"),
             func.count().label("message_count"),
         )
-        .group_by(func.date(Message.create_time))
+        .group_by(func.date_format(Message.create_time, '%Y-%m-%d'))
         .order_by("date")
     )
+
     eval = (
         db.query(
-            func.date(Message.create_time).label("date"),
+            func.date_format(Message.create_time, '%Y-%m-%d').label("date"),
             Message.evaluation,
             func.count().label("total"),
         )
         .filter(Message.evaluation.isnot(None))
-        .group_by(func.date(Message.create_time), Message.evaluation)
+        .group_by(func.date_format(Message.create_time, '%Y-%m-%d'), Message.evaluation)
         .order_by("date")
     )
 

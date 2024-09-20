@@ -1,6 +1,6 @@
 [project]
 name = "chat2llms"
-version = "0.0.6"
+version = "0.0.7"
 description = "与大模型交互的RAG问答系统"
 readme = "README.md"
 maintainers = [{ name = "Jacob Zheng", email = "1453366421@qq.com" }]
@@ -19,7 +19,12 @@ dependencies = [
     "opentelemetry-sdk==1.27.0",
     "opentelemetry-exporter-otlp==1.27.0",
     "arize-phoenix==4.32.0",
-    "openpyxl==3.1.5"
+    "openpyxl==3.1.5",
+    "ollama==0.3.3",
+    "fuzzywuzzy==0.18.0",
+    "python-Levenshtein==0.25.1",
+    "pymysql==1.1.1",
+    "cryptography==43.0.1"
 ]
 
 [project.optional-dependencies]

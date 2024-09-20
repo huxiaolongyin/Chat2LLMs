@@ -25,6 +25,7 @@ with open("src/asset/css/custom.css", encoding="utf-8") as f:
 st.title("💬 HTW ChatBot")
 st.caption("🚀 汉特云公司的 LLMs 聊天/知识检索 机器人")
 
+
 # 初始化状态
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -32,17 +33,19 @@ if "messages" not in st.session_state:
 
 if "knowledge_select_index" not in st.session_state:
     st.session_state.knowledge_select_index = 0
+# 模型列表
+if "model_list" not in st.session_state:
+    st.session_state.model_list = ["llama3.1", "qwen2.5"]
 
 if "model_select_index" not in st.session_state:
     st.session_state.model_select_index = 0
+
 
 # 获取知识库列表
 if "store_list" not in st.session_state:
     st.session_state.store_list = HTWDocument().get_store_list()
 
-# 模型列表
-if "model_list" not in st.session_state:
-    st.session_state.model_list = ["llama3.1", "qwen2.5"]
+
 
 # 添加侧边栏
 with st.sidebar:
@@ -64,13 +67,11 @@ with st.sidebar:
     )
 
     clean_history = st.button("清空消息历史", use_container_width=True)
-
     # 在页面底部添加版本信息
     st.markdown(
         f"<div style='text-align: center; bottom: 10px'>v{CONFIG.VERSION}</div>",
         unsafe_allow_html=True,
     )
-
 
 # 创建一个容器来存放聊天消息, 在容器中显示聊天历史，比较稳定
 chat_container = st.container()

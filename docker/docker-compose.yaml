@@ -1,15 +1,14 @@
-version: '0.0.6'
+version: '0.0.7'
 name: chat2llms
 services:
   backend:
-    image: chat2llms:0.0.6
+    image: chat2llms:0.0.7
     container_name: chat2llms
     ports:
       - "8000:8000"
       - "6006:6006"
       - "8501:8501"
     volumes:
-      - ${DATA_PATH}/sqlite:/code/sqlite
       - ${EMBEDDING_MODEL_PATH}:/BigModels/360Zhinao-search
     depends_on:
       - qdrant
@@ -18,13 +17,20 @@ services:
       - DB_SQLITE_PATH=/code/sqlite/chat2llms.db
       - QRANT_HOST=qdrant
       - QRANT_PORT=6333
+      - OLLAMA_HOST=${OLLAMA_HOST}
       - OLLAMA_URL=${OLLAMA_URL}
+      - API_KEY=${API_KEY}
+      - DB_MYSQL_HOST=mysql
+      - DB_MYSQL_PORT=${DB_MYSQL_PORT}
+      - DB_MYSQL_USER=${DB_MYSQL_USER}
+      - DB_MYSQL_PASSWORD=${DB_MYSQL_PASSWORD}
+      - DB_MYSQL_DATABASE=${DB_MYSQL_DATABASE}
     networks:
       - my-network
+    restart: always
 
   qdrant:
     image: qdrant/qdrant
-    
     container_name: qdrant
     ports:
       - "6333:6333"
@@ -33,6 +39,20 @@ services:
       - ${DATA_PATH}\qdrant_storage:/qdrant/storage
     networks:
       - my-network
+    restart: always
+
+  mysql:
+    image: mysql:9.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ${DATA_PATH}\mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_MYSQL_PASSWORD}
+    networks:
+      - my-network
+    restart: always
 networks:
   my-network:
     driver: bridge
