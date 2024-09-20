@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
-from .base import Base
-from core.utils import generate_id
+from .base import Base, generate_id
+
 from datetime import datetime
 
 
@@ -19,4 +19,5 @@ class Chat(Base):
     )
 
     assistant = relationship("Assistant", back_populates="chats")
-    message = relationship("Message", back_populates="chat")
+    # chat有多个message
+    messages = relationship("Message", back_populates="chat")

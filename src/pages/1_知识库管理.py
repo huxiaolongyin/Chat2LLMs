@@ -1,9 +1,12 @@
 import streamlit as st
 from core.retrieval import HTWDocument
 import pandas as pd
+from core.utils import knowledge_change
 
-
-st.set_page_config(page_title="HTW ChatBot", page_icon="🤖",)
+st.set_page_config(
+    page_title="HTW ChatBot",
+    page_icon="🤖",
+)
 
 # 加载自定义样式
 with open("src/asset/css/custom.css", encoding="utf-8") as f:
@@ -12,8 +15,12 @@ with open("src/asset/css/custom.css", encoding="utf-8") as f:
 st.title("📝 知识库管理")
 st.caption("🚀 汉特云公司的知识库管理系统")
 
-store_list = HTWDocument().get_store_list()
+# 获取知识库列表
+if "store_list" not in st.session_state:
+    st.session_state.store_list = HTWDocument().get_store_list()
 
+if "knowledge_select_index" not in st.session_state:
+    st.session_state.knowledge_select_index = 0
 
 def new_knowledge(name: str):
     """新建知识库"""
@@ -31,8 +38,10 @@ def new_knowledge(name: str):
 with st.sidebar:
     knowledge_select = st.selectbox(
         "请选择知识库",
-        store_list,
+        st.session_state.store_list,
         key="knowledge_select",
+        on_change=knowledge_change,
+        index=st.session_state.knowledge_select_index,
     )
     knowledge_list = [
         item.model_dump() for item in HTWDocument(knowledge_select).get_documents()
@@ -47,9 +56,9 @@ with st.sidebar:
     know_button = st.button(
         "新建知识库",
         on_click=new_knowledge,
-        args=(new_knowledge_name,),
         use_container_width=True,
         key="new_knowledge",
+        args=(new_knowledge_name,),
     )
     del_button = st.button(
         "删除知识库",

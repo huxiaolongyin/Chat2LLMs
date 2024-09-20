@@ -44,6 +44,7 @@ class Config:
         self.WEB_ROUTE_PREFIX = "/api/v1"
 
         # OLLAMA
+        self.OLLAMA_HOST = load_str_env("OLLAMA_HOST", required=True)
         self.OLLAMA_URL = load_str_env("OLLAMA_URL", required=True)
 
         # QRANT
@@ -51,6 +52,9 @@ class Config:
         self.QRANT_PORT = load_int_env("QRANT_PORT", required=True)
 
         self.EMBEDDING_MODEL_PATH = load_str_env("EMBEDDING_MODEL_PATH", required=True)
+
+        # WETHER
+        self.API_KEY = load_str_env("API_KEY", required=True)
 
 
 CONFIG = Config()

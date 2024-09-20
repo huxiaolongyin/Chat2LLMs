@@ -1,114 +1,44 @@
 import asyncio
 import datetime
-from core.config import CONFIG
-import streamlit as st
-from typing import List
-from haystack import Pipeline, component
-from haystack.dataclasses import Document, ChatMessage, StreamingChunk
-from core.retrieval import HTWDocument
-from haystack.components.embedders import SentenceTransformersTextEmbedder
-from haystack.components.builders import ChatPromptBuilder
-from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
-from haystack_integrations.components.generators.ollama import OllamaChatGenerator
+from haystack.dataclasses import ChatMessage
+from core.pipeline import generate_pipeline
+from core.utils import check_openinference, StreamingMannager
 
-# 检测运行情况
-from openinference.instrumentation.haystack import HaystackInstrumentor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-    OTLPSpanExporter,
-)
-from opentelemetry.sdk import trace as trace_sdk
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-
-endpoint = "http://localhost:6006/v1/traces"  # The URL to your Phoenix instance
-tracer_provider = trace_sdk.TracerProvider()
-tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint)))
-HaystackInstrumentor().instrument(tracer_provider=tracer_provider)
-
-
-@component
-class DocumentProcessor:
-    """数据处理组件"""
-
-    @component.output_types(processed_documents=List[str])
-    def run(self, documents: List[Document]):
-        processed_documents = [doc.content for doc in documents]
-        return {"processed_documents": processed_documents}
+# 开启调试模式
+check_openinference()
 
 
 class ChatBot:
-    # 使用的 Embedding 模型
-    embedding_model_path = CONFIG.EMBEDDING_MODEL_PATH
 
     def __init__(
         self,
         is_streaming: bool = True,
+        model: str = "llama3.1",
         store: str = "Document",
     ):
         """
         :param is_streaming: 是否使用流式输出
         :param store: 知识库名称
         """
-        # 创建一个新的事件循环
-        loop = asyncio.new_event_loop()
-        # 将其设置为当前线程的事件循环
-        asyncio.set_event_loop(loop)
-        # 现在可以创建队列了
-        self.queue = asyncio.Queue()
-        self.running = True
-        self.is_streaming = is_streaming
-        self.document_store = HTWDocument(store).document_store
-        self.llm = OllamaChatGenerator(
-            model="llama3.1",
-            url=f"{CONFIG.OLLAMA_URL}/api/chat",
-            generation_kwargs={
-                "num_predict": 512,
-                "temperature": 0.4,
-            },
-            streaming_callback=self.write_streaming_chunk,
-        )
-
-        self.pipeline = self._get_pipeline(self.embedding_model_path)
-
-    def _get_pipeline(self, embedding_model_path: str) -> Pipeline:
-        """
-        构建一个pipeline，流程如下
-        1. 360 Bert embedding
-        2. Qdrant retriever
-        3. 文本处理 DocumentProcessor
-        4. Chat Prompt Builder
-        5. Ollama llama3.1
-        """
-        text_embedder = SentenceTransformersTextEmbedder(model=embedding_model_path)
-        retriever = QdrantEmbeddingRetriever(self.document_store)
-        llm = self.llm
-        prompt_builder = ChatPromptBuilder(variables=["question", "content"])
-
-        pipeline = Pipeline()
-        pipeline.add_component("text_embedder", text_embedder)
-        pipeline.add_component("retriever", retriever)
-        pipeline.add_component("processed_documents", DocumentProcessor())
-        pipeline.add_component("messages", prompt_builder)
-        pipeline.add_component("llm", llm)
-
-        pipeline.connect("text_embedder.embedding", "retriever")
-        pipeline.connect("retriever.documents", "processed_documents")
-        pipeline.connect("processed_documents", "messages.content")
-        pipeline.connect("messages", "llm.messages")
-
-        return pipeline
+        self.SMer = StreamingMannager()
+        # 创建一个pipeline
+        self.model = model
+        self.pipeline = generate_pipeline(self.SMer, model=self.model, store=store)
 
     def query(
         self, question: str, top_k: int = 5, history_messages: ChatMessage = None
     ) -> dict:
         """输出查询结果"""
-        self.placeholder = st.empty()
-        self.tokens = []
-        if history_messages is None:
-            history_messages = [
-                ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
-            ]
-        
-        # 创建一个任务来执行pipeline
+
+        # 清空之前的输出
+        self.SMer.create_empty_placeholder()
+
+        # 获取历史消息
+        history_messages = history_messages or [
+            ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
+        ]
+
+        # 执行pipeline
         response = self.pipeline.run(
             data={
                 "retriever": {
@@ -116,31 +46,28 @@ class ChatBot:
                     "score_threshold": 0.7,
                 },
                 "text_embedder": {"text": question},
+                "function_info": {"question": question, "model": self.model},
                 "messages": {"question": question, "template": history_messages},
             },
-            include_outputs_from="retriever"
+            include_outputs_from="retriever",
         )
-        documents = response["retriever"]['documents']
+
+        # 获取结果
+        documents = response["retriever"]["documents"]
         answer = response["llm"]["replies"][0].content
 
         # 标记流的结束
-        self.queue.put_nowait("None")
+        self.SMer.write_end_chunk()
 
         return answer, documents
 
-
-    def write_streaming_chunk(self, chunk: StreamingChunk):
-        """写入流式输出的内容"""
-        self.queue.put_nowait(chunk)
-        self.tokens.append(chunk.content)
-        self.placeholder.write("".join(self.tokens))
-
     async def get_stream(self):
-        while self.running:
+        """获取流式输出，用于api调用"""
+        while self.SMer.running:
             try:
-                chunk = await asyncio.wait_for(self.queue.get(), timeout=0.1)
+                chunk = await asyncio.wait_for(self.SMer.queue.get(), timeout=0.1)
                 if chunk == "None":
-                    self.running = False
+                    self.SMer.running = False
                 else:
                     data = {
                         "object": "message",
@@ -155,14 +82,3 @@ class ChatBot:
                     yield f"data: {data}\n\n"
             except asyncio.TimeoutError:
                 continue
-
-    def display_references(self, documents: List[Document]):
-        """显示文档引用"""
-        if documents:
-            with st.expander("参考文档"):
-                for doc in documents:
-                    st.write(f"相关度: {doc.score*100:.2f}%。内容：{doc.content}")
-                    if doc.meta:
-                        st.write("元数据:")
-                        for key, value in doc.meta.items():
-                            st.write(f"- {key}: {value}")          

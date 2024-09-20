@@ -26,16 +26,16 @@ class HTWDocument:
         self.model_path = model_path
         self.db_host = db_host
         self.port = port
+        self.embedding_dim = BertConfig.from_pretrained(model_path).hidden_size
         self.document_store = self.__get_store
 
     @property
     def __get_store(self):
-        embedding_dim = BertConfig.from_pretrained(self.model_path).hidden_size
         document_store = QdrantDocumentStore(
             host=self.db_host,
             port=self.port,
             index=self.store,
-            embedding_dim=embedding_dim,
+            embedding_dim=self.embedding_dim,
             # recreate_index=True,
             hnsw_config={"m": 16, "ef_construct": 64},  # Optional
         )
@@ -107,3 +107,15 @@ class HTWDocument:
             return {"delete_status": "SUCCESS"}
         except Exception as e:
             return {"delete_status": "ERROR", "message": str(e)}
+
+    def new_store(self, name: str = None):
+        """新建知识库"""
+        client = QdrantClient(host=self.db_host, port=self.port)
+        try:
+            client.create_collection(
+                collection_name=name,
+                vectors_config={"size": self.embedding_dim, "distance": "Cosine"},
+            )
+            return {"create_status": "SUCCESS"}
+        except Exception as e:
+            return {"create_status": "ERROR", "message": str(e)}

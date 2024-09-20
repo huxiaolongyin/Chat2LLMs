@@ -1,6 +1,6 @@
 import streamlit as st
 from core.database import sqlite_connection
-from models.suggestion import Suggestion
+from models import Suggestion
 
 st.set_page_config(
     page_title="HTW ChatBot",

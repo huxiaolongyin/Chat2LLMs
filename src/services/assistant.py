@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from models import Assistant
 from schemas import AssistantBase, AssistantBaseRequset
-from typing import List
 
 
 def get_assistant_by_name(db: Session, name: str):

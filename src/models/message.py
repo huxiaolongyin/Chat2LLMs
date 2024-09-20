@@ -18,4 +18,4 @@ class Message(Base):
         Text, default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), comment="创建时间"
     )
 
-    chat = relationship("Chat", back_populates="message")
+    chat = relationship("Chat", back_populates="messages")

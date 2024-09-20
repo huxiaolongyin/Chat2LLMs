@@ -1,8 +1,7 @@
 from sqlalchemy import Column, String, Text
 from sqlalchemy.orm import relationship
-from core.utils import generate_id
 from datetime import datetime
-from .base import Base
+from .base import Base, generate_id
 
 
 class Assistant(Base):

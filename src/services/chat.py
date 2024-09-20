@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 from models import Chat
-from schemas import ChatBaseRequest, ChatBase
+from schemas import ChatBaseRequest
 from datetime import datetime
-from typing import List
 
 
 def create_chat(db: Session, data: ChatBaseRequest):
