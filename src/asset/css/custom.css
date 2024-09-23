@@ -4,14 +4,14 @@ footer {
 }
 
 /* 使用data-testid属性选择器 */
-[data-testid="stSidebarUserContent"] {
+/* [data-testid="stSidebarUserContent"] {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
     border-top: 1px solid #505158;
-}
+} */
 
 /* 隐藏分隔线按钮 */
 [data-testid="stSidebarNavSeparator"] {

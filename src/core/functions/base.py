@@ -1,10 +1,31 @@
 from typing import List
 import ollama
 from core.functions import available_functions
-
+from models import Tool
 from core.config import CONFIG
 from core.functions import tools
+# from core.database import sql_connection
 
+# with sql_connection() as db:
+#     # 执行数据库操作
+#     res = db.query(Tool)
+# tools_content = [i.__dict__ for i in res]
+# tools = [
+#     {
+#         "name": tool["english_name"],
+#         "description": tool["description"],
+#         "parameters": {
+#             "type": "object",
+#             "properties": {
+#                 "city_name": {
+#                     "type": "string",
+#                     "description": tool["parameters"],
+#                 }
+#             },
+#         },
+#     }
+#     for tool in tools_content
+# ]
 
 def generate_function_response(question, model) -> List[dict]:
     """返回，执行的函数及函数结果"""
@@ -42,3 +63,7 @@ def generate_function_response(question, model) -> List[dict]:
             )
 
         return result
+
+
+
+

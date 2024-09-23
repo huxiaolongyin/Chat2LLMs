@@ -33,9 +33,10 @@ if "messages" not in st.session_state:
 
 if "knowledge_select_index" not in st.session_state:
     st.session_state.knowledge_select_index = 0
+
 # 模型列表
 if "model_list" not in st.session_state:
-    st.session_state.model_list = ["llama3.1", "qwen2.5"]
+    st.session_state.model_list = ["qwen2.5", "llama3.1"]
 
 if "model_select_index" not in st.session_state:
     st.session_state.model_select_index = 0
@@ -46,9 +47,9 @@ if "store_list" not in st.session_state:
     st.session_state.store_list = HTWDocument().get_store_list()
 
 
-
 # 添加侧边栏
 with st.sidebar:
+    st.markdown("---")
     # 知识库选择按钮
     knowledge_select = st.selectbox(
         "请选择知识库",

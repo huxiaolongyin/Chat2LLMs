@@ -8,6 +8,7 @@ from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
 from transformers import BertConfig
 from qdrant_client import QdrantClient
 from schemas import StoreBase, DocumentBase
+from qdrant_client.models import Distance, VectorParams
 
 
 class HTWDocument:
@@ -15,25 +16,27 @@ class HTWDocument:
     知识库向量化存储
     """
 
+    qdrant_client = QdrantClient(
+        host=CONFIG.QRANT_HOST,
+        port=CONFIG.QRANT_PORT,
+        grpc_port=CONFIG.QRANT_GRPC_PORT,
+        prefer_grpc=True,
+    )
+
     def __init__(
         self,
         store: str = "Document",
         model_path: str = CONFIG.EMBEDDING_MODEL_PATH,
-        db_host: str = CONFIG.QRANT_HOST,
-        port: int = CONFIG.QRANT_PORT,
     ):
         self.store = store
         self.model_path = model_path
-        self.db_host = db_host
-        self.port = port
         self.embedding_dim = BertConfig.from_pretrained(model_path).hidden_size
         self.document_store = self.__get_store
 
     @property
     def __get_store(self):
         document_store = QdrantDocumentStore(
-            host=self.db_host,
-            port=self.port,
+            host=CONFIG.QRANT_HOST,
             index=self.store,
             embedding_dim=self.embedding_dim,
             # recreate_index=True,
@@ -43,7 +46,7 @@ class HTWDocument:
 
     def store_collections(self) -> List[StoreBase]:
         """获取所有知识库详细信息"""
-        client = QdrantClient(host=self.db_host, port=self.port)
+
         collections = [
             StoreBase(
                 store_name=index.name,
@@ -52,19 +55,19 @@ class HTWDocument:
                 embedding_size=collection_info.config.params.vectors.size,
                 distance=collection_info.config.params.vectors.distance.value,
             )
-            for index in client.get_collections().collections
-            if (collection_info := client.get_collection(index.name))
+            for index in self.qdrant_client.get_collections().collections
+            if (collection_info := self.qdrant_client.get_collection(index.name))
         ]
 
         return collections
 
     def get_store_list(self) -> List[str]:
         """获取所有知识库名称"""
-        client = QdrantClient(host=self.db_host, port=self.port)
+
         collections = [
             index.name
-            for index in client.get_collections().collections
-            if (collection_info := client.get_collection(index.name))
+            for index in self.qdrant_client.get_collections().collections
+            if (collection_info := self.qdrant_client.get_collection(index.name))
         ]
         return collections
 
@@ -73,7 +76,6 @@ class HTWDocument:
         docs: List[str] = None,
     ):
         """将知识内容，写入知识库"""
-
         # 获取文档
         documents = [Document(content=doc) for doc in docs]
         indexing_pipeline = Pipeline()
@@ -101,21 +103,22 @@ class HTWDocument:
 
     def del_store(self, store: str = None):
         """删除知识库"""
-        client = QdrantClient(host=self.db_host, port=self.port)
         try:
-            client.delete_collection(collection_name=store)
+            res = self.qdrant_client.delete_collection(collection_name=store)
             return {"delete_status": "SUCCESS"}
         except Exception as e:
             return {"delete_status": "ERROR", "message": str(e)}
 
     def new_store(self, name: str = None):
         """新建知识库"""
-        client = QdrantClient(host=self.db_host, port=self.port)
         try:
-            client.create_collection(
+            self.qdrant_client.create_collection(
                 collection_name=name,
-                vectors_config={"size": self.embedding_dim, "distance": "Cosine"},
+                vectors_config=VectorParams(
+                    size=self.embedding_dim, distance=Distance.COSINE
+                ),
             )
+
             return {"create_status": "SUCCESS"}
         except Exception as e:
             return {"create_status": "ERROR", "message": str(e)}

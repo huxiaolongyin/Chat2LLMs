@@ -54,7 +54,8 @@ python -m venv .venv
 # 激活虚拟环境
 .venv\Scripts\activate
 # 安装依赖： -e 表示开发环境
-python -m pip install -e .
+pip install --upgrade pip
+pip install -e .
 ```
 
 # 启动方式

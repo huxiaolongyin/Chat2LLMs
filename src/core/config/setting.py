@@ -38,29 +38,32 @@ class Config:
         from __init__ import __VERSION__
 
         self.VERSION = __VERSION__
-        self.DB_SQLITE_PATH = load_str_env("DB_SQLITE_PATH", required=True)
 
-        # web
+        # WEB
         self.WEB_ROUTE_PREFIX = "/api/v1"
+
+        # EMBEDDING
+        self.EMBEDDING_MODEL_PATH = load_str_env("EMBEDDING_MODEL_PATH", required=True)
 
         # OLLAMA
         self.OLLAMA_HOST = load_str_env("OLLAMA_HOST", required=True)
-        self.OLLAMA_URL = load_str_env("OLLAMA_URL", required=True)
+        self.OLLAMA_PORT = load_int_env("OLLAMA_PORT", required=True)
+        self.OLLAMA_URL = f"http://{self.OLLAMA_HOST}:{self.OLLAMA_PORT}"
 
         # QRANT
         self.QRANT_HOST = load_str_env("QRANT_HOST", required=True)
         self.QRANT_PORT = load_int_env("QRANT_PORT", required=True)
+        self.QRANT_GRPC_PORT = load_int_env("QRANT_GRPC_PORT", required=True)
 
-        self.EMBEDDING_MODEL_PATH = load_str_env("EMBEDDING_MODEL_PATH", required=True)
-
-        # WETHER
-        self.API_KEY = load_str_env("API_KEY", required=True)
+        # WEATHER
+        self.GAODE_API_KEY = load_str_env("GAODE_API_KEY", required=True)
 
         # MYSQL
-        self.DB_MYSQL_USER = load_str_env("DB_MYSQL_USER", required=True)
-        self.DB_MYSQL_PASSWORD = load_str_env("DB_MYSQL_PASSWORD", required=True)
-        self.DB_MYSQL_HOST = load_str_env("DB_MYSQL_HOST", required=True)
-        self.DB_MYSQL_PORT = load_int_env("DB_MYSQL_PORT", required=True)
-        self.DB_MYSQL_DATABASE = load_str_env("DB_MYSQL_DATABASE", required=True)
+        self.MYSQL_HOST = load_str_env("MYSQL_HOST", required=True)
+        self.MYSQL_PORT = load_int_env("MYSQL_PORT", required=True)
+        self.MYSQL_USER = load_str_env("MYSQL_USER", required=True)
+        self.MYSQL_PASSWORD = load_str_env("MYSQL_PASSWORD", required=True)      
+        self.MYSQL_DATABASE = load_str_env("MYSQL_DATABASE", required=True)
+
 
 CONFIG = Config()

@@ -6,7 +6,7 @@ from core.utils import find_city_code
 
 def get_current_weather(city_name: str) -> str:
     """获取天气信息"""
-    key = CONFIG.API_KEY
+    key = CONFIG.GAODE_API_KEY
     if not city_name:
         ip_get_url = f"https://restapi.amap.com/v3/ip?key={key}"
         response = requests.get(ip_get_url)

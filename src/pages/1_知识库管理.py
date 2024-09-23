@@ -22,6 +22,7 @@ if "store_list" not in st.session_state:
 if "knowledge_select_index" not in st.session_state:
     st.session_state.knowledge_select_index = 0
 
+
 def new_knowledge(name: str):
     """新建知识库"""
     result = HTWDocument().new_store(name)
@@ -31,11 +32,27 @@ def new_knowledge(name: str):
     with st.spinner("正在创建知识库..."):
         if result["create_status"] == "SUCCESS":
             st.success("知识库创建成功")
+            st.session_state.store_list.append(name)
         else:
             st.error("知识库创建失败，失败原因：" + result["message"])
 
 
+def del_knowledge(name: str):
+    """删除知识库"""
+    result = HTWDocument().del_store(store=name)
+    if not name or name == "请输入知识库名称":
+        st.error("知识库删除失败，失败原因：没有选择知识库")
+        return
+    with st.spinner("正在删除知识库..."):
+        if result["delete_status"] == "SUCCESS":
+            st.success("知识库删除成功")
+            st.session_state.store_list.remove(name)
+        else:
+            st.error("知识库删除失败，失败原因：" + result["message"])
+
+
 with st.sidebar:
+    st.markdown("---")
     knowledge_select = st.selectbox(
         "请选择知识库",
         st.session_state.store_list,
@@ -62,10 +79,9 @@ with st.sidebar:
     )
     del_button = st.button(
         "删除知识库",
-        on_click=HTWDocument().del_store,
+        on_click=del_knowledge,
         args=(knowledge_select,),
         use_container_width=True,
-        key="del_knowledge",
     )
 
 # 创建一个数据框来显示知识库内容

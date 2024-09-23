@@ -6,11 +6,11 @@ from contextlib import contextmanager
 
 MYSQL_DATABASE_URL = URL.create(
     "mysql+pymysql",
-    username=CONFIG.DB_MYSQL_USER,
-    password=CONFIG.DB_MYSQL_PASSWORD,
-    host=CONFIG.DB_MYSQL_HOST,
-    port=CONFIG.DB_MYSQL_PORT,
-    database=CONFIG.DB_MYSQL_DATABASE,
+    username=CONFIG.MYSQL_USER,
+    password=CONFIG.MYSQL_PASSWORD,
+    host=CONFIG.MYSQL_HOST,
+    port=CONFIG.MYSQL_PORT,
+    database=CONFIG.MYSQL_DATABASE,
 )
 
 engine = create_engine(
