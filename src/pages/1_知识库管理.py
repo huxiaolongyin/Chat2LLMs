@@ -1,7 +1,9 @@
 import streamlit as st
 from core.retrieval import HTWDocument
 import pandas as pd
-from core.utils import knowledge_change
+
+from core.streamlit_utils import CallBackFunction
+import streamlit_antd_components as sac
 
 st.set_page_config(
     page_title="HTW ChatBot",
@@ -18,7 +20,6 @@ st.caption("🚀 汉特云公司的知识库管理系统")
 # 获取知识库列表
 if "store_list" not in st.session_state:
     st.session_state.store_list = HTWDocument().get_store_list()
-
 if "knowledge_select_index" not in st.session_state:
     st.session_state.knowledge_select_index = 0
 
@@ -57,12 +58,13 @@ with st.sidebar:
         "请选择知识库",
         st.session_state.store_list,
         key="knowledge_select",
-        on_change=knowledge_change,
+        on_change=CallBackFunction.knowledge_change,
         index=st.session_state.knowledge_select_index,
     )
     knowledge_list = [
         item.model_dump() for item in HTWDocument(knowledge_select).get_documents()
     ]
+
     total = len(knowledge_list)
     st.metric(label="知识总数", value=total)
     new_knowledge_name = st.text_input(

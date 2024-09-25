@@ -24,7 +24,8 @@ dependencies = [
     "fuzzywuzzy==0.18.0",
     "python-Levenshtein==0.25.1",
     "pymysql==1.1.1",
-    "cryptography==43.0.1"
+    "cryptography==43.0.1",
+    "streamlit_antd_components==0.3.2"
 ]
 
 [project.optional-dependencies]

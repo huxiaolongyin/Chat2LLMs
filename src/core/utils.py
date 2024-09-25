@@ -2,10 +2,9 @@ import asyncio
 from core.config.setting import CONFIG
 import requests
 import streamlit as st
-from typing import List
 from models import Message
 from core.database import sql_connection
-from haystack.dataclasses import StreamingChunk, Document, ChatMessage
+from haystack.dataclasses import StreamingChunk, ChatMessage
 
 
 def check_openinference():
@@ -21,21 +20,6 @@ def check_openinference():
     tracer_provider = trace_sdk.TracerProvider()
     tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint)))
     HaystackInstrumentor().instrument(tracer_provider=tracer_provider)
-
-
-def on_feedback_change():
-    """反馈选项改变时的回调函数"""
-    feedback_value = st.session_state.feedback
-
-    with sql_connection() as db:
-        message = (
-            db.query(Message)
-            .filter(Message.message_id == st.session_state.message_id)
-            .first()
-        )
-        if message:
-            message.evaluation = feedback_value
-            db.commit()
 
 
 def get_history_messages(messages: list = None) -> list:
@@ -54,18 +38,6 @@ def get_history_messages(messages: list = None) -> list:
         ChatMessage.from_user("问题：{{question}}，参考内容：{{content}}")
     )
     return history_messages
-
-
-def display_references(documents: List[Document]):
-    """在streamlit 显示文档引用"""
-    if documents:
-        with st.expander("参考文档"):
-            for doc in documents:
-                st.write(f"相关度: {doc.score*100:.2f}%。内容：{doc.content}")
-                if doc.meta:
-                    st.write("元数据:")
-                    for key, value in doc.meta.items():
-                        st.write(f"- {key}: {value}")
 
 
 def insert_message(question, answer, store, context_length: int = 8):
@@ -87,27 +59,11 @@ def insert_message(question, answer, store, context_length: int = 8):
         db.commit()
 
 
-def model_change():
-    """模型选择改变时的回调函数"""
-    st.session_state.model_select_index = st.session_state.model_list.index(
-        st.session_state.model_select
-    )
-
-    # ollama_persist(model=st.session_state.model_select)
-
-
 def ollama_persist(model: str):
     """持久化ollama模型"""
     json_data = {"model": model, "messages": [], "keep_alive": "-1m"}
     url = f"http://{CONFIG.OLLAMA_URL}/api/chat"
     requests.post(url=url, json=json_data)
-
-
-def knowledge_change():
-    """知识库选择改变时的回调函数"""
-    st.session_state.knowledge_select_index = st.session_state.store_list.index(
-        st.session_state.knowledge_select
-    )
 
 
 class StreamingMannager:
