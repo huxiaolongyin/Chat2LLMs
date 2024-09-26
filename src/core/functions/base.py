@@ -1,69 +1,49 @@
-from typing import List
 import ollama
-from core.functions import available_functions
-from models import Tool
+import requests
+from typing import List
 from core.config import CONFIG
-from core.functions import tools
-# from core.database import sql_connection
+from core.utils import generate_tools_conf
 
-# with sql_connection() as db:
-#     # 执行数据库操作
-#     res = db.query(Tool)
-# tools_content = [i.__dict__ for i in res]
-# tools = [
-#     {
-#         "name": tool["english_name"],
-#         "description": tool["description"],
-#         "parameters": {
-#             "type": "object",
-#             "properties": {
-#                 "city_name": {
-#                     "type": "string",
-#                     "description": tool["parameters"],
-#                 }
-#             },
-#         },
-#     }
-#     for tool in tools_content
-# ]
+tools, tool_url = generate_tools_conf()
 
-def generate_function_response(question, model) -> List[dict]:
-    """返回，执行的函数及函数结果"""
+
+def generate_function_response(question: str, model: str) -> List[dict]:
+    """执行通用的函数调用功能，并返回结果"""
     client = ollama.Client(host=CONFIG.OLLAMA_HOST)
-    messages = [
-        {
-            "role": "user",
-            "content": question,
-        }
-    ]
-    response = client.chat(
+    llm_response = client.chat(
         model=model,
-        messages=messages,
+        messages=[
+            {
+                "role": "user",
+                "content": question,
+            }
+        ],
         tools=tools,
     )
+
     # 如果没获取到函数
-    print(response)
-    if not response["message"].get("tool_calls"):
-        print("The model didn't use the function. Its response was:")
-        print(response["message"]["content"])
+    if not llm_response["message"].get("tool_calls"):
+        print(f"未获取到函数，函数响应：{llm_response}")
         return
 
     # 如果获取到了函数
-    if response["message"].get("tool_calls"):
+    if llm_response["message"].get("tool_calls"):
         result = []
-        for tool in response["message"]["tool_calls"]:
-            function_to_call = available_functions[tool["function"]["name"]]
-            function_response = function_to_call(**tool["function"]["arguments"])
+        for tool in llm_response["message"]["tool_calls"]:
+
+            # 获取函数方法
             function_name = tool["function"]["name"]
+            print(tool_url[function_name])
+            print(tool["function"]["arguments"])    
+            function_response = requests.post(
+                tool_url[function_name], json=tool["function"]["arguments"]
+            ).json()
+
             result.append(
-                (
-                    {"function_name": function_name},
-                    {"function_response": function_response},
-                )
+                {
+                    "function_name": function_name,
+                    "function_response": function_response,
+                },
             )
 
         return result
-
-
-
-

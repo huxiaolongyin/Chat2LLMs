@@ -1,10 +1,49 @@
 import asyncio
+import json
 from core.config.setting import CONFIG
 import requests
 import streamlit as st
 from models import Message
 from core.database import sql_connection
 from haystack.dataclasses import StreamingChunk, ChatMessage
+from models import Tool
+
+
+def convert_parameters(params):
+    """将参数转换为 tools 的参数格式"""
+    new_params = {"type": "object", "properties": {}, "required": []}
+
+    for key, value in params.items():
+        new_params["properties"][key] = {
+            "type": value["type"],
+            "description": value["description"],
+        }
+        if value.get("required", False):
+            new_params["required"].append(key)
+
+    return new_params
+
+
+def generate_tools_conf():
+    """从数据库中加载函数配置，加载可用函数"""
+
+    with sql_connection() as db:
+        result = db.query(Tool).filter(Tool.enabled == 1)
+
+    tool_json_list = [json.loads(item.__dict__["json"]) for item in result.all()]
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": tool["name"],
+                "description": tool["description"],
+                "parameters": convert_parameters(tool["parameters"]),
+            },
+        }
+        for tool in tool_json_list
+    ]
+    tool_url = {tool["name"]: tool["url"] for tool in tool_json_list}
+    return tools, tool_url
 
 
 def check_openinference():

@@ -29,7 +29,9 @@ def initialize_page():
         with sql_connection() as db:
             content = db.query(Tool)
         st.session_state.tool_df = [item.__dict__ for item in content.all()]
-
+    if "tool_params" not in st.session_state:
+        st.session_state.tool_params = {"parameters": []}
+    
     # 加载自定义样式
     with open("src/asset/css/custom.css", encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -82,6 +84,16 @@ class CallBackFunction:
             if message:
                 message.evaluation = feedback_value
                 db.commit()
+
+    @staticmethod
+    def tool_enabled_change(tool_id):
+        """工具启用状态改变时的回调函数"""
+
+        with sql_connection() as db:
+            tool = db.query(Tool).filter(Tool.tool_id == tool_id).first()
+            tool.enabled = not tool.enabled
+            db.commit()
+            db.refresh(tool)
 
 
 class SlideBar:
