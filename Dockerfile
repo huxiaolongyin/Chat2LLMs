@@ -13,7 +13,7 @@ RUN pip3 config set global.index-url https://mirrors.aliyun.com/pypi/simple/
 RUN pip3 install --upgrade pip setuptools wheel 
 RUN pip3 install .
 
-COPY ./start.sh .
+COPY ./scripts/start.sh .
 
 EXPOSE 8000 6006 8501
 

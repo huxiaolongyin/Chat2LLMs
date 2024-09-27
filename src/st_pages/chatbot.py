@@ -15,14 +15,9 @@ from core.streamlit_utils import (
 )
 from core.streamlit_config import WELCOME_MESSAGE
 
-# 设置页面配置
-st.set_page_config(
-    page_title="HTW ChatBot",
-    layout="centered",
-    page_icon="🤖",
-)
+
 # 设置页面标题
-st.title("💬 HTW ChatBot")
+st.title(":material/forum: HTW ChatBot")
 st.caption("🚀 汉特云公司的 LLMs 聊天/知识检索 机器人")
 
 # 初始化页面

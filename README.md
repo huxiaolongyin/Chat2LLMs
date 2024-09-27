@@ -58,6 +58,7 @@ pip install --upgrade pip
 pip install -e .
 ```
 
+
 # 启动方式
 ```powershell
 # 启动 Arize Phoenix RAG监控服务
@@ -67,10 +68,16 @@ python -m phoenix.server.main serve
 uvicorn src.main:app --reload
 
 # 启动 Streamlit 服务
-streamlit run src/ChatBot.py
+streamlit run src/streamlit_main.py
 ```
+# 使用docker启动
+```powershell
+docker build -t chat2llms:latest .
 
+cd docker
 
+docker compose up -d
+```
 # 开发计划
 ## V0.0.1
 实现最小化可行产品(MVP)，完成一些核心功能，如问答、知识库管理等。

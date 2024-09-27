@@ -6,16 +6,13 @@ from sqlalchemy import func
 from models import Issue
 import altair as alt
 
-st.set_page_config(
-    page_title="HTW ChatBot",
-    page_icon="🤖",
-)
+
 
 # 加载自定义样式
 with open("src/asset/css/custom.css", encoding="utf-8") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.title("💡 问题与建议")
+st.title(":material/psychology_alt: 问题与建议")
 st.caption("🚀 输入你的问题或建议")
 
 # 初始化session state
@@ -75,7 +72,7 @@ if submited:
 st.write(f"问题总数: `{len(st.session_state.issue_df)}`")
 
 st.info(
-    "您可以通过双击单元格来编辑票据。注意下面的图是如何自动更新的！"
+    "您可以通过双击单元格来编辑问题。注意下面的统计是如何自动更新的！"
     "还可以通过单击列标题对表进行排序。",
     icon="✍️",
 )

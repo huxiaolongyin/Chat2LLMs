@@ -1,27 +1,18 @@
 import streamlit as st
 from core.retrieval import HTWDocument
 import pandas as pd
-
-from core.streamlit_utils import CallBackFunction
+from core.streamlit_utils import CallBackFunction, initialize_page
 import streamlit_antd_components as sac
 
-st.set_page_config(
-    page_title="HTW ChatBot",
-    page_icon="🤖",
-)
+
 
 # 加载自定义样式
 with open("src/asset/css/custom.css", encoding="utf-8") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.title("📝 知识库管理")
-st.caption("🚀 汉特云公司的知识库管理系统")
-
-# 获取知识库列表
-if "store_list" not in st.session_state:
-    st.session_state.store_list = HTWDocument().get_store_list()
-if "knowledge_select_index" not in st.session_state:
-    st.session_state.knowledge_select_index = 0
+st.title(":material/auto_stories: 知识库管理")
+st.caption("🚀 汉特云公司的知识库管理")
+initialize_page()
 
 
 def new_knowledge(name: str):
@@ -37,8 +28,15 @@ def new_knowledge(name: str):
         else:
             st.error("知识库创建失败，失败原因：" + result["message"])
 
+@st.dialog("确认删除知识库", width="small")
+def del_knowledge_dialog(data):
+    st.write(data)
+    data_id = [item["id"] for item in data]
+    if st.button("确认删除", use_container_width=True,type="primary"):
+        CallBackFunction.del_knowledge(data_id)
+        st.rerun()
 
-def del_knowledge(name: str):
+def del_knowledge_store(name: str):
     """删除知识库"""
     result = HTWDocument().del_store(store=name)
     if not name or name == "请输入知识库名称":
@@ -50,7 +48,7 @@ def del_knowledge(name: str):
             st.session_state.store_list.remove(name)
         else:
             st.error("知识库删除失败，失败原因：" + result["message"])
-
+    st.session_state.knowledge_select_index = 0
 
 with st.sidebar:
     st.markdown("---")
@@ -61,11 +59,9 @@ with st.sidebar:
         on_change=CallBackFunction.knowledge_change,
         index=st.session_state.knowledge_select_index,
     )
-    knowledge_list = [
-        item.model_dump() for item in HTWDocument(knowledge_select).get_documents()
-    ]
 
-    total = len(knowledge_list)
+
+    total = len(st.session_state.knowledge_df)
     st.metric(label="知识总数", value=total)
     new_knowledge_name = st.text_input(
         "请输入新知识库名称",
@@ -81,26 +77,41 @@ with st.sidebar:
     )
     del_button = st.button(
         "删除知识库",
-        on_click=del_knowledge,
+        on_click=del_knowledge_store,
         args=(knowledge_select,),
         use_container_width=True,
+        type="primary",
     )
 
 # 创建一个数据框来显示知识库内容
 st.markdown("### 知识库内容")
-try:
-    df = pd.DataFrame(knowledge_list)["content"]
-except Exception as e:
-    df = pd.DataFrame()
-st.dataframe(
-    df,
+for item in st.session_state.knowledge_df:
+    item["select"] = False
+data_show = st.data_editor(
+    st.session_state.knowledge_df[(st.session_state.page_current - 1) * 10 : st.session_state.page_current * 10],
+    # st.session_state.knowledge_df,
     hide_index=True,
-    # height=500,
     column_config={
-        # "id": st.column_config.TextColumn("ID", width=150),
+        "select": st.column_config.CheckboxColumn(
+            "选择",
+            help="选择要操作的知识",
+            default=False,
+        ),
+        "id": st.column_config.TextColumn("ID", width="small"),
         "content": st.column_config.TextColumn("内容"),
     },
     use_container_width=True,
+)
+delete_data = [item for item in data_show if item["select"]]
+
+st.button("删除选中知识", use_container_width=True, on_click=del_knowledge_dialog, args=(delete_data,))
+
+sac.pagination(
+    len(st.session_state.knowledge_df),
+    page_size=10,
+    align="center",
+    show_total=True,
+    key="page_current",
 )
 
 
@@ -142,4 +153,5 @@ if uploader_file is not None:
             args=(process_df.tolist(),),
             key="submit_knowledge",
             use_container_width=True,
+            type="primary",
         )

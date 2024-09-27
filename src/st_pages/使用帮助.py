@@ -1,16 +1,13 @@
 import streamlit as st
 
 
-st.set_page_config(
-    page_title="HTW ChatBOT 使用指南",
-    page_icon="🤖",
-)
+
 
 # 加载自定义样式
 with open("src/asset/css/custom.css", encoding="utf-8") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.title("🤖 HTW ChatBOT 使用指南")
+st.title(":material/live_help: HTW ChatBOT 使用指南")
 
 st.markdown(
     """

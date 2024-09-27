@@ -1,6 +1,6 @@
 [project]
 name = "chat2llms"
-version = "0.0.7"
+version = "0.0.8"
 description = "与大模型交互的RAG问答系统"
 readme = "README.md"
 maintainers = [{ name = "Jacob Zheng", email = "1453366421@qq.com" }]
