@@ -2,15 +2,15 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 from core.database import sql_connection
-from sqlalchemy import func
 from models import Issue
 import altair as alt
-
-
+from streamlit_app.utils import initialize_page, CallBackFunction
+from pyecharts import options as opts
+from pyecharts.charts import Bar
+from streamlit_echarts import st_pyecharts
 
 # 加载自定义样式
-with open("src/asset/css/custom.css", encoding="utf-8") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+initialize_page()
 
 st.title(":material/psychology_alt: 问题与建议")
 st.caption("🚀 输入你的问题或建议")
@@ -78,29 +78,6 @@ st.info(
 )
 
 
-def edited_df_on_change():
-    """
-    Callback function to handle changes in the edited DataFrame.
-    """
-    edited_rows = st.session_state.edited_df["edited_rows"].copy()
-    for index, row in edited_rows.items():
-        original_row = st.session_state.issue_df.loc[index, :]
-        original_row.update(row)
-
-        issue_id = original_row["issue_id"]
-
-        with sql_connection() as db:
-            issue = db.query(Issue).filter(Issue.issue_id == issue_id).first()
-            issue.status = original_row["status"]
-            issue.priority = original_row["priority"]
-            issue.status = row["status"]
-            if issue.status == "关闭":
-                issue.complete_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            if issue.status == "进行中":
-                issue.response_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            db.commit()
-
-
 edited_df = st.data_editor(
     st.session_state.issue_df,
     use_container_width=True,
@@ -143,7 +120,7 @@ edited_df = st.data_editor(
         ),
     },
     key="edited_df",
-    on_change=edited_df_on_change,
+    on_change=CallBackFunction.edited_issue_on_change,
     # 禁止编辑 ID 和时间
     disabled=["issue_id", "create_time", "complete_time", "response_time"],
 )
@@ -194,8 +171,8 @@ status_plot = (
     alt.Chart(edited_df)
     .mark_bar()
     .encode(
-        x="month(create_time):O",
-        y="count():Q",
+        x=alt.X("date(create_time):T", type="nominal", title="日期"),
+        y=alt.Y(aggregate="count", type="quantitative", title="计数"),
         xOffset="status:N",
         color="status:N",
     )
@@ -203,6 +180,7 @@ status_plot = (
         orient="bottom", titleFontSize=14, labelFontSize=14, titlePadding=5
     )
 )
+
 st.altair_chart(status_plot, use_container_width=True, theme="streamlit")
 
 st.write("##### 当前任务优先级")

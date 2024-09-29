@@ -39,8 +39,11 @@ class ChatBot:
         # 初始化流式输出管理器
         self.SMer = StreamingMannager()
 
+        # 进行模型持久化
+        llm = LLMsManager(model, SMer=self.SMer)
+        llm.persist()
+
         # 创建一个pipeline
-        llm = LLMsManager(model=self.model, SMer=self.SMer).llm
         embedding_model_path = CONFIG.EMBEDDING_MODEL_PATH
         text_embedder = SentenceTransformersTextEmbedder(model=embedding_model_path)
         retriever = QdrantEmbeddingRetriever(HTWDocument(store).document_store)

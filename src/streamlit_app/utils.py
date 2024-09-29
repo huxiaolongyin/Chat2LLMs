@@ -1,3 +1,4 @@
+from datetime import datetime
 from core.config.setting import CONFIG
 import streamlit as st
 from typing import List
@@ -8,6 +9,7 @@ from core.retrieval.embedding import HTWDocument
 from streamlit_app.config import DEFAULT_MODEL_LIST
 import pandas as pd
 import streamlit_antd_components as sac
+from models import Issue
 
 
 def initialize_page():
@@ -61,9 +63,10 @@ def initialize_page():
     if "quick_use_show" not in st.session_state:
         quick_use()
         st.session_state.quick_use_show = True
-    # # 加载自定义样式
-    # with open("src/asset/css/custom.css", encoding="utf-8") as f:
-    #     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+    # 加载自定义样式
+    with open("src/asset/css/custom.css", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     if "assistant_prompt" not in st.session_state:
         CallBackFunction.assistant_change()
@@ -195,7 +198,11 @@ class CallBackFunction:
                 assistant.prompt = assistant_prompt
 
         st.session_state.assistant_list = [
-            item.__dict__ for item in db.query(Assistant).all()
+            item.__dict__
+            for item in db.query(Assistant).order_by(Assistant.create_time).all()
+        ]
+        st.session_state.assistant_name_list = [
+            item["name"] for item in st.session_state.assistant_list
         ]
 
     @staticmethod
@@ -209,7 +216,8 @@ class CallBackFunction:
             )
             db.delete(assistant)
         st.session_state.assistant_list = [
-            item.__dict__ for item in db.query(Assistant).all()
+            item.__dict__
+            for item in db.query(Assistant).order_by(Assistant.create_time).all()
         ]
 
     @staticmethod
@@ -238,6 +246,12 @@ class CallBackFunction:
         st.success("添加成功")
 
     @staticmethod
+    def del_knowledge_store(store: str):
+        """知识库删除"""
+        HTWDocument().del_store(store=store)
+        st.session_state.store_list.remove(store)
+
+    @staticmethod
     def del_knowledge(knowledge_id: list):
         """知识删除"""
         HTWDocument(st.session_state.knowledge_select).del_docs(knowledge_id)
@@ -245,6 +259,48 @@ class CallBackFunction:
             item.model_dump()
             for item in HTWDocument(st.session_state.knowledge_select).get_documents()
         ]
+
+    @staticmethod
+    def edited_issue_on_change():
+        """
+        当 issue 发生改变时，更新数据库
+        """
+        edited_rows = list(st.session_state.edited_df["edited_rows"].keys())[0]
+        issue_changed = list(st.session_state.edited_df["edited_rows"].values())[0]
+        for key, value in issue_changed.items():
+            st.session_state.issue_df.loc[edited_rows, key] = value
+        update_issue = st.session_state.issue_df.loc[edited_rows, :]
+
+        issue_id = update_issue["issue_id"]
+        issue = update_issue["issue"]
+        status = update_issue["status"]
+        priority = update_issue["priority"]
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if status == "待解决":
+            response_time = None
+            complete_time = None
+        elif status == "进行中":
+            response_time = current_time
+            complete_time = None
+        else:
+
+            response_time = (
+                current_time
+                if pd.isna(st.session_state.issue_df.loc[edited_rows, "response_time"])
+                else st.session_state.issue_df.loc[edited_rows, "response_time"]
+            )
+            complete_time = current_time
+
+        st.session_state.issue_df.loc[edited_rows, "response_time"] = response_time
+        st.session_state.issue_df.loc[edited_rows, "complete_time"] = complete_time
+
+        with sql_connection() as db:
+            issue_data = db.query(Issue).filter(Issue.issue_id == issue_id).first()
+            issue_data.issue = issue
+            issue_data.status = status
+            issue_data.priority = priority
+            issue_data.response_time = response_time
+            issue_data.complete_time = complete_time
 
 
 class SlideBar:

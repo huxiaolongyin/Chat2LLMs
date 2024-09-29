@@ -5,7 +5,6 @@ from streamlit_app.utils import CallBackFunction, initialize_page
 import streamlit_antd_components as sac
 
 
-
 # 加载自定义样式
 with open("src/asset/css/custom.css", encoding="utf-8") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -28,27 +27,24 @@ def new_knowledge(name: str):
         else:
             st.error("知识库创建失败，失败原因：" + result["message"])
 
-@st.dialog("确认删除知识库", width="small")
+
+@st.dialog("确认删除知识", width="small")
 def del_knowledge_dialog(data):
     st.write(data)
     data_id = [item["id"] for item in data]
-    if st.button("确认删除", use_container_width=True,type="primary"):
+    if st.button("确认删除", use_container_width=True, type="primary"):
         CallBackFunction.del_knowledge(data_id)
         st.rerun()
 
-def del_knowledge_store(name: str):
+
+@st.dialog("确认删除知识库", width="small")
+def del_knowledge_store_dialog(name: str):
     """删除知识库"""
-    result = HTWDocument().del_store(store=name)
-    if not name or name == "请输入知识库名称":
-        st.error("知识库删除失败，失败原因：没有选择知识库")
-        return
-    with st.spinner("正在删除知识库..."):
-        if result["delete_status"] == "SUCCESS":
-            st.success("知识库删除成功")
-            st.session_state.store_list.remove(name)
-        else:
-            st.error("知识库删除失败，失败原因：" + result["message"])
-    st.session_state.knowledge_select_index = 0
+    st.write(f"知识库：{name}")
+    if st.button("确认删除", use_container_width=True, type="primary"):
+        CallBackFunction.del_knowledge_store(name)
+        st.rerun()
+
 
 with st.sidebar:
     st.markdown("---")
@@ -59,7 +55,6 @@ with st.sidebar:
         on_change=CallBackFunction.knowledge_change,
         index=st.session_state.knowledge_select_index,
     )
-
 
     total = len(st.session_state.knowledge_df)
     st.metric(label="知识总数", value=total)
@@ -77,7 +72,7 @@ with st.sidebar:
     )
     del_button = st.button(
         "删除知识库",
-        on_click=del_knowledge_store,
+        on_click=del_knowledge_store_dialog,
         args=(knowledge_select,),
         use_container_width=True,
         type="primary",
@@ -88,7 +83,9 @@ st.markdown("### 知识库内容")
 for item in st.session_state.knowledge_df:
     item["select"] = False
 data_show = st.data_editor(
-    st.session_state.knowledge_df[(st.session_state.page_current - 1) * 10 : st.session_state.page_current * 10],
+    st.session_state.knowledge_df[
+        (st.session_state.page_current - 1) * 10 : st.session_state.page_current * 10
+    ],
     # st.session_state.knowledge_df,
     hide_index=True,
     column_config={
@@ -104,7 +101,12 @@ data_show = st.data_editor(
 )
 delete_data = [item for item in data_show if item["select"]]
 
-st.button("删除选中知识", use_container_width=True, on_click=del_knowledge_dialog, args=(delete_data,))
+st.button(
+    "删除选中知识",
+    use_container_width=True,
+    on_click=del_knowledge_dialog,
+    args=(delete_data,),
+)
 
 sac.pagination(
     len(st.session_state.knowledge_df),

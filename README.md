@@ -68,7 +68,7 @@ python -m phoenix.server.main serve
 uvicorn src.main:app --reload
 
 # 启动 Streamlit 服务
-streamlit run src/streamlit_main.py
+streamlit run src/streamlit_app/main.py
 ```
 # 使用docker启动
 ```powershell
