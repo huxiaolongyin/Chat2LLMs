@@ -301,8 +301,13 @@ class CallBackFunction:
             issue_data.priority = priority
             issue_data.response_time = response_time
             issue_data.complete_time = complete_time
-
-
+    
+    @staticmethod
+    def clean_history():
+        """清空消息历史"""
+        st.session_state.messages = []
+        st.session_state.message_id = None
+  
 class SlideBar:
     """侧边栏集合"""
 
@@ -333,7 +338,7 @@ class SlideBar:
                 on_change=CallBackFunction.model_change,
                 key="model_select",
             )
-            clean_history = st.button("清空消息历史", use_container_width=True)
+            clean_history = st.button("清空消息历史", use_container_width=True, on_click=CallBackFunction.clean_history)
             st.markdown(
                 f"<div style='text-align: center; bottom: 10px'>v{CONFIG.VERSION}</div>",
                 unsafe_allow_html=True,

@@ -9,6 +9,7 @@ services:
       - "8501:8501"
     volumes:
       - ${EMBEDDING_MODEL_PATH}:/BigModels/360Zhinao-search
+      - ${DATA_PATH}/phoenix:/.phoenix
     depends_on:
       - qdrant
     environment:

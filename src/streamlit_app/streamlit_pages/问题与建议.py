@@ -5,9 +5,7 @@ from core.database import sql_connection
 from models import Issue
 import altair as alt
 from streamlit_app.utils import initialize_page, CallBackFunction
-from pyecharts import options as opts
-from pyecharts.charts import Bar
-from streamlit_echarts import st_pyecharts
+
 
 # 加载自定义样式
 initialize_page()
