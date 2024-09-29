@@ -1,7 +1,7 @@
 import streamlit as st
 from core.retrieval import HTWDocument
 import pandas as pd
-from core.streamlit_utils import CallBackFunction, initialize_page
+from streamlit_app.utils import CallBackFunction, initialize_page
 import streamlit_antd_components as sac
 
 

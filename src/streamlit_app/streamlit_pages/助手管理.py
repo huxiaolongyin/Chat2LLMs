@@ -1,5 +1,5 @@
 import streamlit as st
-from core.streamlit_utils import initialize_page, CallBackFunction
+from streamlit_app.utils import initialize_page, CallBackFunction
 
 st.title(":material/smart_toy: 助手管理")
 st.caption("🚀 汉特云公司的助手管理")

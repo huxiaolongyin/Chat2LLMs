@@ -1,4 +1,3 @@
-import random
 import streamlit as st
 from core.chatbot import ChatBot
 from core.retrieval.embedding import HTWDocument
@@ -7,13 +6,13 @@ from core.utils import (
     get_history_messages,
     insert_message,
 )
-from core.streamlit_utils import (
+from streamlit_app.utils import (
     CallBackFunction,
     SlideBar,
     initialize_page,
     display_references,
 )
-from core.streamlit_config import WELCOME_MESSAGE
+from streamlit_app.config import WELCOME_MESSAGE
 
 
 # 设置页面标题

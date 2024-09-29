@@ -9,6 +9,32 @@ from haystack.dataclasses import StreamingChunk, ChatMessage
 from models import Tool
 
 
+class StreamingMannager:
+    """进行流式输出的管理"""
+
+    def __init__(self):
+        # 创建一个新的事件循环，来处理队列，初始化队列内容
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self.queue = asyncio.Queue()
+        self.running = True
+
+    def create_empty_placeholder(self):
+        """创建一个空的占位符"""
+        self.placeholder = st.empty()
+        self.tokens = []
+
+    def write_streaming_chunk(self, chunk: StreamingChunk):
+        """写入流式输出的内容"""
+        self.queue.put_nowait(chunk)
+        self.tokens.append(chunk.content)
+        self.placeholder.write("".join(self.tokens))
+
+    def write_end_chunk(self):
+        """添加结束指令到序列"""
+        self.queue.put_nowait("None")
+
+
 def convert_parameters(params):
     """将参数转换为 tools 的参数格式"""
     new_params = {"type": "object", "properties": {}, "required": []}
@@ -64,9 +90,7 @@ def check_openinference():
 def get_history_messages(messages: list = None) -> list:
     """获取历史消息"""
     history_messages = [
-        ChatMessage.from_system(
-            content=st.session_state.assistant_prompt
-        )
+        ChatMessage.from_system(content=st.session_state.assistant_prompt)
     ]
     for message in messages[-8:]:
         if message["role"] == "user":
@@ -96,39 +120,6 @@ def insert_message(question, answer, store, context_length: int = 8):
         # 获取最新的message_id
         st.session_state.message_id = message.message_id
         db.commit()
-
-
-def ollama_persist(model: str):
-    """持久化ollama模型"""
-    json_data = {"model": model, "messages": [], "keep_alive": "-1m"}
-    url = f"http://{CONFIG.OLLAMA_URL}/api/chat"
-    requests.post(url=url, json=json_data)
-
-
-class StreamingMannager:
-    """进行流式输出的管理"""
-
-    def __init__(self):
-        # 创建一个新的事件循环，来处理队列，初始化队列内容
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        self.queue = asyncio.Queue()
-        self.running = True
-
-    def create_empty_placeholder(self):
-        """创建一个空的占位符"""
-        self.placeholder = st.empty()
-        self.tokens = []
-
-    def write_streaming_chunk(self, chunk: StreamingChunk):
-        """写入流式输出的内容"""
-        self.queue.put_nowait(chunk)
-        self.tokens.append(chunk.content)
-        self.placeholder.write("".join(self.tokens))
-
-    def write_end_chunk(self):
-        """添加结束指令到序列"""
-        self.queue.put_nowait("None")
 
 
 from fuzzywuzzy import process

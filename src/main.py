@@ -6,7 +6,8 @@ def create_app():
     from core.config import CONFIG
     from fastapi.staticfiles import StaticFiles
     from fastapi.openapi.docs import get_swagger_ui_html
-
+    
+    # todo: 解决静态文件加载
     app = FastAPI(title="Chat2LLMs", version=CONFIG.VERSION)
 
     # 挂载静态文件目录

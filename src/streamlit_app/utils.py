@@ -5,7 +5,7 @@ from models import Message, Assistant, Tool
 from core.database import sql_connection
 from haystack.dataclasses import Document
 from core.retrieval.embedding import HTWDocument
-from core.streamlit_config import DEFAULT_MODEL_LIST
+from streamlit_app.config import DEFAULT_MODEL_LIST
 import pandas as pd
 import streamlit_antd_components as sac
 
@@ -61,9 +61,9 @@ def initialize_page():
     if "quick_use_show" not in st.session_state:
         quick_use()
         st.session_state.quick_use_show = True
-    # 加载自定义样式
-    with open("src/asset/css/custom.css", encoding="utf-8") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    # # 加载自定义样式
+    # with open("src/asset/css/custom.css", encoding="utf-8") as f:
+    #     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     if "assistant_prompt" not in st.session_state:
         CallBackFunction.assistant_change()

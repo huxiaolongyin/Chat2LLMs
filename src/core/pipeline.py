@@ -1,44 +1,23 @@
-from core.config import CONFIG
 from haystack import Pipeline
-from haystack.components.embedders import SentenceTransformersTextEmbedder
-from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
 from haystack.components.builders import ChatPromptBuilder
 from core.component import DocumentProcessor, FunctionInfo
-from haystack_integrations.components.generators.ollama import OllamaChatGenerator
-from core.utils import StreamingMannager
-from core.retrieval import HTWDocument
 
 
-def generate_pipeline(
-    SMer: StreamingMannager, model: str = "llama3.1", store: str = "Document"
-) -> Pipeline:
+def generate_pipeline(llm, text_embedder, retriever) -> Pipeline:
     """
     构建一个pipeline，流程如下
-    1. 360 Bert embedding
-    2. Qdrant retriever
+    1. 选择嵌入模型，将 quetion 进行向量化
+    2. 从 Qdrant 进行检索： retriever
     3. 文本处理 DocumentProcessor
     4. 函数信息获取 FunctionInfo
-    5. Chat Prompt Builder
-    6. Ollama
+    5. 构建 prompt
+    6. 与大模型交互，获取答案
 
     args:
-        SMer: StreamingMannager
-        model: ollama 的模型名称，目前仅支持 llama3.1、qwen2.5
+        llm: 大模型
         store: 知识库名称
     """
-    llm = OllamaChatGenerator(
-        model=model,
-        url=f"{CONFIG.OLLAMA_URL}/api/chat",
-        generation_kwargs={
-            "num_predict": 512,
-            "temperature": 0.4,
-            "keep_alive": '24h', # -1 为永久
-        },
-        streaming_callback=SMer.write_streaming_chunk,
-    )
-    embedding_model_path = CONFIG.EMBEDDING_MODEL_PATH
-    text_embedder = SentenceTransformersTextEmbedder(model=embedding_model_path)
-    retriever = QdrantEmbeddingRetriever(HTWDocument(store).document_store)
+
     prompt_builder = ChatPromptBuilder(variables=["question", "content"])
 
     pipeline = Pipeline()

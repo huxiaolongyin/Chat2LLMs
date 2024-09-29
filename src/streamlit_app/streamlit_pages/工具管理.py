@@ -1,6 +1,6 @@
 import json
 import streamlit as st
-from core.streamlit_utils import initialize_page, CallBackFunction
+from streamlit_app.utils import initialize_page, CallBackFunction
 
 
 def add_param():

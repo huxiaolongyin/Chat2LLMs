@@ -1,29 +1,50 @@
 import asyncio
 import datetime
+from core.config import CONFIG
 from haystack.dataclasses import ChatMessage
 from core.pipeline import generate_pipeline
 from core.utils import check_openinference, StreamingMannager
+from core.llms_manager import LLMsManager
+from haystack.components.embedders import SentenceTransformersTextEmbedder
+from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
+from core.retrieval.embedding import HTWDocument
 
 # 开启调试模式
 check_openinference()
 
 
 class ChatBot:
+    """
+    构建一个ChatBot类，用于与用户进行交互
+    steps:
+        1. 获取pipeline
+
+    """
 
     def __init__(
         self,
-        is_streaming: bool = True,
-        model: str = "llama3.1",
+        model: str,
         store: str = "Document",
+        is_streaming: bool = True,
     ):
         """
-        :param is_streaming: 是否使用流式输出
-        :param store: 知识库名称
+        args:
+            model: 使用的模型名称
+            # embedding_model: 使用的embedding模型
+            store: 选择已经存入的知识库名称，和embedding模型对应
+            is_streaming: 是否开启流式输出
         """
-        self.SMer = StreamingMannager()
-        # 创建一个pipeline
         self.model = model
-        self.pipeline = generate_pipeline(self.SMer, model=self.model, store=store)
+        
+        # 初始化流式输出管理器
+        self.SMer = StreamingMannager()
+
+        # 创建一个pipeline
+        llm = LLMsManager(model=self.model, SMer=self.SMer).llm
+        embedding_model_path = CONFIG.EMBEDDING_MODEL_PATH
+        text_embedder = SentenceTransformersTextEmbedder(model=embedding_model_path)
+        retriever = QdrantEmbeddingRetriever(HTWDocument(store).document_store)
+        self.pipeline = generate_pipeline(llm, text_embedder, retriever)
 
     def query(
         self, question: str, top_k: int = 5, history_messages: ChatMessage = None
