@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body
 from schemas.base import BaseDataResponse, ErrorResponse
-from core.functions.common import get_current_weather
-from core.functions.robot import go_to_place
+from core.tools.common import get_current_weather
+from core.tools.robot import go_to_place
 
 router = APIRouter()
 

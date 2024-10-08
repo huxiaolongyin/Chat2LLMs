@@ -1,7 +1,7 @@
 from typing import List
 from haystack import component
 from haystack.dataclasses import Document
-from core.functions.base import generate_function_response
+from core.tools.base import generate_function_response
 
 
 @component
@@ -20,5 +20,7 @@ class FunctionInfo:
 
     @component.output_types(content=List[str])
     def run(self, documents: List[str], question: str, model: str):
-        function_info = generate_function_response(question=question, model=model)  # todo
+        function_info = generate_function_response(
+            question=question, model=model
+        )  # todo
         return {"content": {"documents": documents, "function_info": [function_info]}}

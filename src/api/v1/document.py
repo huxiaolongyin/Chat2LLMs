@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Query, Path
-from core.retrieval import HTWDocument
+from core.embedding import HTWDocument
 from schemas import (
     StoreBaseResponse,
     DocumentBaseResponse,
@@ -22,7 +22,7 @@ router = APIRouter()
 )
 async def get_all_store():
     """获取知识库的信息"""
-    store_info = HTWDocument().store_collections()
+    store_info = HTWDocument().get_all_knowledge_store_details()
     return StoreBaseResponse(store_info=store_info)
 
 
@@ -35,7 +35,7 @@ async def get_all_store():
 )
 async def knowledges(store: str = Path(..., description="知识库名称")):
     """获取知识库所有内容"""
-    store_info = HTWDocument().store_collections()
+    store_info = HTWDocument().get_all_knowledge_store_details()
     store_name_list = [store.store_name for store in store_info]
     # 判断知识库是否存在
     if store not in store_name_list:
@@ -43,7 +43,7 @@ async def knowledges(store: str = Path(..., description="知识库名称")):
             status_code=400,
             content=ErrorResponse(detail="知识库不存在").model_dump(),
         )
-    document = HTWDocument(store).get_documents()
+    document = HTWDocument(store).get_knowledge_content_or_all()
     return DocumentBaseResponse(store_name=store, document=document)
 
 
@@ -56,7 +56,7 @@ async def knowledges(store: str = Path(..., description="知识库名称")):
 )
 async def new_knowledge(data: DocumentBaseRequest):
     """创建知识内容"""
-    result = HTWDocument(data.store_name).write_docs(data.content)
+    result = HTWDocument(data.store_name).save_knowledge_content(data.content)
     return BaseDataResponse(data=result)
 
 
@@ -71,7 +71,9 @@ async def del_knowledge(store: str, document_id: Union[list, str]):
     """删除知识"""
     if isinstance(document_id, str):
         document_id = [document_id]
-    return BaseDataResponse(data=HTWDocument(store).del_docs(document_id))
+    return BaseDataResponse(
+        data=HTWDocument(store).delete_knowledge_content(document_id)
+    )
 
 
 @router.delete(
@@ -83,5 +85,5 @@ async def del_knowledge(store: str, document_id: Union[list, str]):
 )
 async def del_knowledge_store(store_name: str):
     """删除知识库"""
-    data = HTWDocument().del_store(store_name)
+    data = HTWDocument().delete_knowledge_store(store_name)
     return BaseDataResponse(data=data)

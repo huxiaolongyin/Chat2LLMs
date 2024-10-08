@@ -1,5 +1,5 @@
 import streamlit as st
-from core.retrieval import HTWDocument
+from core.embedding import HTWDocument
 import pandas as pd
 from streamlit_app.utils import CallBackFunction, initialize_page
 import streamlit_antd_components as sac
@@ -16,7 +16,7 @@ initialize_page()
 
 def new_knowledge(name: str):
     """新建知识库"""
-    result = HTWDocument().new_store(name)
+    result = HTWDocument().create_knowledge_store(name)
     if not name or name == "请输入知识库名称":
         st.error("知识库创建失败，失败原因：没有输入知识库名称")
         return
@@ -130,7 +130,7 @@ def upload_knowledge(documents: list):
     with st.status(f"正在上传知识到{knowledge_select}...") as status:
         progress_bar = st.progress(0)
         for i, document in enumerate(documents):
-            HTWDocument(knowledge_select).write_docs([document])
+            HTWDocument(knowledge_select).save_knowledge_content([document])
             progress_bar.progress((i + 1) / total)
         status.update(label="知识库上传成功", state="complete", expanded=False)
 

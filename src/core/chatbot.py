@@ -7,7 +7,7 @@ from core.utils import check_openinference, StreamingMannager
 from core.llms_manager import LLMsManager
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
-from core.retrieval.embedding import HTWDocument
+from core.embedding import HTWDocument
 
 # 开启调试模式
 check_openinference()
@@ -35,7 +35,7 @@ class ChatBot:
             is_streaming: 是否开启流式输出
         """
         self.model = model
-        
+
         # 初始化流式输出管理器
         self.SMer = StreamingMannager()
 

@@ -1,19 +1,18 @@
-import os
 from typing import List, Dict
 from core.config import CONFIG
+from transformers import BertConfig
+from qdrant_client import QdrantClient
+from schemas import StoreBase, DocumentBase
 from haystack import Pipeline, Document
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.writers import DocumentWriter
 from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
-from transformers import BertConfig
-from qdrant_client import QdrantClient
-from schemas import StoreBase, DocumentBase
 from qdrant_client.models import Distance, VectorParams
 
 
 class HTWDocument:
     """
-    知识库向量化存储
+    知识库向量化存储，使用 haystack_Qdrant 进行管理
     """
 
     qdrant_client = QdrantClient(
@@ -44,9 +43,22 @@ class HTWDocument:
         )
         return document_store
 
-    def store_collections(self) -> List[StoreBase]:
-        """获取所有知识库详细信息"""
+    def create_knowledge_store(self, name: str = None):
+        """新建知识库"""
+        try:
+            self.qdrant_client.create_collection(
+                collection_name=name,
+                vectors_config=VectorParams(
+                    size=self.embedding_dim, distance=Distance.COSINE
+                ),
+            )
 
+            return {"create_status": "SUCCESS"}
+        except Exception as e:
+            return {"create_status": "ERROR", "message": str(e)}
+
+    def get_all_knowledge_store_details(self) -> List[StoreBase]:
+        """获取所有知识库详细信息"""
         collections = [
             StoreBase(
                 store_name=index.name,
@@ -61,9 +73,8 @@ class HTWDocument:
 
         return collections
 
-    def get_store_list(self) -> List[str]:
+    def get_all_knowledge_store_names(self) -> List[str]:
         """获取所有知识库名称"""
-
         collections = [
             index.name
             for index in self.qdrant_client.get_collections().collections
@@ -71,7 +82,15 @@ class HTWDocument:
         ]
         return collections
 
-    def write_docs(
+    def delete_knowledge_store(self, store: str = None):
+        """删除知识库"""
+        try:
+            self.qdrant_client.delete_collection(collection_name=store)
+            return {"delete_status": "SUCCESS"}
+        except Exception as e:
+            return {"delete_status": "ERROR", "message": str(e)}
+
+    def save_knowledge_content(
         self,
         docs: List[str] = None,
     ):
@@ -86,10 +105,11 @@ class HTWDocument:
             "writer", DocumentWriter(document_store=self.document_store)
         )
         indexing_pipeline.connect("embedder", "writer")
-        res = indexing_pipeline.run({"documents": documents})
-        return res
+        return indexing_pipeline.run({"documents": documents})
 
-    def get_documents(self, filter: Dict[str, str] = None) -> List[DocumentBase]:
+    def get_knowledge_content_or_all(
+        self, filter: Dict[str, str] = None
+    ) -> List[DocumentBase]:
         """获取知识库内容，若没有，则返回所有知识内容"""
         documents = self.document_store.filter_documents(filter)
 
@@ -97,28 +117,6 @@ class HTWDocument:
 
         return result
 
-    def del_docs(self, ids: List[str] = None):
+    def delete_knowledge_content(self, ids: List[str] = None):
         """删除知识内容"""
         return self.document_store.delete_documents(ids)
-
-    def del_store(self, store: str = None):
-        """删除知识库"""
-        try:
-            res = self.qdrant_client.delete_collection(collection_name=store)
-            return {"delete_status": "SUCCESS"}
-        except Exception as e:
-            return {"delete_status": "ERROR", "message": str(e)}
-
-    def new_store(self, name: str = None):
-        """新建知识库"""
-        try:
-            self.qdrant_client.create_collection(
-                collection_name=name,
-                vectors_config=VectorParams(
-                    size=self.embedding_dim, distance=Distance.COSINE
-                ),
-            )
-
-            return {"create_status": "SUCCESS"}
-        except Exception as e:
-            return {"create_status": "ERROR", "message": str(e)}

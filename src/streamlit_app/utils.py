@@ -5,7 +5,7 @@ from typing import List
 from models import Message, Assistant, Tool
 from core.database import sql_connection
 from haystack.dataclasses import Document
-from core.retrieval.embedding import HTWDocument
+from core.embedding import HTWDocument
 from streamlit_app.config import DEFAULT_MODEL_LIST
 import pandas as pd
 import streamlit_antd_components as sac
@@ -43,7 +43,7 @@ def initialize_page():
         st.session_state.model_select_index = 0
 
     if "store_list" not in st.session_state:
-        st.session_state.store_list = HTWDocument().get_store_list()
+        st.session_state.store_list = HTWDocument().get_all_knowledge_store_names()
 
     if "knowledge_select_index" not in st.session_state:
         st.session_state.knowledge_select_index = 0
@@ -145,7 +145,9 @@ class CallBackFunction:
         )
         knowledge_documents = [
             item.model_dump()
-            for item in HTWDocument(st.session_state.knowledge_select).get_documents()
+            for item in HTWDocument(
+                st.session_state.knowledge_select
+            ).get_knowledge_content_or_all()
         ]
         st.session_state.knowledge_df = pd.DataFrame(knowledge_documents).to_dict(
             "records"
@@ -248,16 +250,20 @@ class CallBackFunction:
     @staticmethod
     def del_knowledge_store(store: str):
         """知识库删除"""
-        HTWDocument().del_store(store=store)
+        HTWDocument().delete_knowledge_store(store=store)
         st.session_state.store_list.remove(store)
 
     @staticmethod
     def del_knowledge(knowledge_id: list):
         """知识删除"""
-        HTWDocument(st.session_state.knowledge_select).del_docs(knowledge_id)
+        HTWDocument(st.session_state.knowledge_select).delete_knowledge_content(
+            knowledge_id
+        )
         st.session_state.knowledge_df = [
             item.model_dump()
-            for item in HTWDocument(st.session_state.knowledge_select).get_documents()
+            for item in HTWDocument(
+                st.session_state.knowledge_select
+            ).get_knowledge_content_or_all()
         ]
 
     @staticmethod
@@ -301,13 +307,14 @@ class CallBackFunction:
             issue_data.priority = priority
             issue_data.response_time = response_time
             issue_data.complete_time = complete_time
-    
+
     @staticmethod
     def clean_history():
         """清空消息历史"""
         st.session_state.messages = []
         st.session_state.message_id = None
-  
+
+
 class SlideBar:
     """侧边栏集合"""
 
@@ -338,7 +345,11 @@ class SlideBar:
                 on_change=CallBackFunction.model_change,
                 key="model_select",
             )
-            clean_history = st.button("清空消息历史", use_container_width=True, on_click=CallBackFunction.clean_history)
+            clean_history = st.button(
+                "清空消息历史",
+                use_container_width=True,
+                on_click=CallBackFunction.clean_history,
+            )
             st.markdown(
                 f"<div style='text-align: center; bottom: 10px'>v{CONFIG.VERSION}</div>",
                 unsafe_allow_html=True,

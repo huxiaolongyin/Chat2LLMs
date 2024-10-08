@@ -1,6 +1,6 @@
 import streamlit as st
 from core.chatbot import ChatBot
-from core.retrieval.embedding import HTWDocument
+from core.embedding import HTWDocument
 from core.config import CONFIG
 from core.utils import (
     get_history_messages,

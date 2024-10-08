@@ -35,11 +35,12 @@ src
     │  ├─v1             # api 版本
     │  └─router.py      # 主路由
     ├─core              # 核心模块
+    │  ├─config         # 配置文件
     │  ├─database       # 数据库处理
     │  │  ├─redis       # 缓冲区
     │  │  └─sqlite      # 数据库
-    │  ├─llms           # 大模型交互
-    │  └─retrieval      # 向量数据库
+    │  ├─embedding      # 向量数据库
+    │  └─tools          # 工具集合
     ├─models            # 对象模型
     ├─schemas           # 数据模型
     ├─services          # 服务   
